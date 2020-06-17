@@ -1,0 +1,6 @@
+en:
+  invalid-option-value: "Please input an integer value."
+  option-out-of-range: "Please choose from the provided options."
+  invalid-yes-no-input: "Please enter either a \"y\" or an \"n\"."
+  default: "Default"
+  downloading-docker-compose: "Downloading docker-compose.yml..."

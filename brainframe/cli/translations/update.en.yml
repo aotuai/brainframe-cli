@@ -1,0 +1,11 @@
+en:
+  description: "Updates the BrainFrame server to a new version"
+  usage: "brainframe update [<args>]"
+  version-help: "The version of the BrainFrame server to update to. Note that
+  downgrading to a previous version using data from a future version is not
+  supported, and may result in instability or data loss."
+  restart-help: "If provided, the server will restart after the update is
+  complete"
+  ask-restart: "Would you like to restart the BrainFrame server to apply the
+  update?"
+  complete: "BrainFrame has been updated!"
