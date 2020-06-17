@@ -20,6 +20,8 @@ en:
   install-docker-compose-help: "If provided, Docker Compose will be
   automatically installed if it is not present. This is only available for
   supported operating systems."
+  install-curl-help: "If provided, curl will be automatically installed if not
+  present. This is only available for supported operating systems."
   add-to-group-help: "If provided, the current user will be added to the
   \"brainframe\" group"
   add-to-docker-group-help: "If provided, the current user will be added to the

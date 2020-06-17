@@ -31,6 +31,7 @@ def install():
     dependencies.docker_compose.ensure(
         args.noninteractive, args.install_docker_compose
     )
+    dependencies.curl.ensure(args.noninteractive, args.install_curl)
 
     if not os_utils.is_in_group("docker") and not os_utils.is_root():
         if args.noninteractive:
@@ -138,6 +139,11 @@ def _parse_args():
         "--install-docker-compose",
         action="store_true",
         help=i18n.t("install.install-docker-compose-help"),
+    )
+    parser.add_argument(
+        "--install-curl",
+        action="store_true",
+        help=i18n.t("install.install-curl-help"),
     )
     parser.add_argument(
         "--add-to-group",
