@@ -12,7 +12,7 @@ def update(install_path: Path):
 
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
-    docker_compose.download(docker_compose_path)
+    docker_compose.download(docker_compose_path, version=args.version)
 
     docker_compose.run(install_path, ["pull"])
 
