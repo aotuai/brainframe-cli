@@ -37,4 +37,5 @@ jobs:
         POETRY_HTTP_BASIC_TESTPYPI_PASSWORD: ${{ secrets.TEST_PYPI_PASSWORD }}
       run: |
         poetry build
+        poetry config repositories.testpypi https://test.pypi.org/legacy/
         poetry publish --repository testpypi
