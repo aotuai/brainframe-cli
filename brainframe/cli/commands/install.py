@@ -27,11 +27,11 @@ def install():
         print("")
 
     # Check all dependencies
+    dependencies.curl.ensure(args.noninteractive, args.install_curl)
     dependencies.docker.ensure(args.noninteractive, args.install_docker)
     dependencies.docker_compose.ensure(
         args.noninteractive, args.install_docker_compose
     )
-    dependencies.curl.ensure(args.noninteractive, args.install_curl)
 
     if not os_utils.is_in_group("docker") and not os_utils.is_root():
         if args.noninteractive:
