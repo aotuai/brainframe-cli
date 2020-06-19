@@ -6,3 +6,5 @@ en:
   downloading-docker-compose: "Downloading docker-compose.yml..."
   noninteractive-help: "Prevents this command from prompting for input and
   pulls configuration from flags instead. This can be useful for scripts."
+  checking-group: "Checking if the user is in the %{group} group"
+  adding-to-group: "Adding user to the %{group} group"

@@ -25,11 +25,13 @@ def create_group(group_name):
 
 
 def is_in_group(group_name):
+    print_utils.translate("general.checking-group", group=group_name)
     result = run(["groups"], stdout=subprocess.PIPE, encoding="utf-8")
     return group_name in result.stdout.split()
 
 
 def add_to_group(group_name):
+    print_utils.translate("general.adding-to-group", group=group_name)
     result = run(["whoami"], stdout=subprocess.PIPE, encoding="utf-8")
     user = result.stdout.strip()
 
