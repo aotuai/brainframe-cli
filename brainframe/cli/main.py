@@ -55,6 +55,7 @@ def main():
     elif args.command == "update":
         commands.update(install_path)
     elif args.command == "compose":
+        docker_compose.assert_installed(install_path)
         os.chdir(data_path)
         docker_compose.run(install_path, sys.argv[2:])
     else:

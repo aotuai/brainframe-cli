@@ -15,6 +15,8 @@ BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 def backup(install_path: Path, data_path: Path):
     args = _parse_args(data_path)
 
+    docker_compose.assert_installed(install_path)
+
     dependencies.rsync.ensure(args.noninteractive, args.install_rsync)
 
     if not args.noninteractive:

@@ -6,5 +6,8 @@ en:
   downloading-docker-compose: "Downloading docker-compose.yml..."
   noninteractive-help: "Prevents this command from prompting for input and
   pulls configuration from flags instead. This can be useful for scripts."
-  checking-group: "Checking if the user is in the %{group} group"
   adding-to-group: "Adding user to the %{group} group"
+  brainframe-must-be-installed: "It appears that the BrainFrame server has not
+  been installed yet. Have you run \"brainframe install\"? If you've installed
+  to a custom location, ensure that the %{install_env_var} environment variable
+  has been set."

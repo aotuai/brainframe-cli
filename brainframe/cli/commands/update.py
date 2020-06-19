@@ -10,6 +10,8 @@ from .utils import subcommand_parse_args
 def update(install_path: Path):
     args = _parse_args()
 
+    docker_compose.assert_installed(install_path)
+
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
     docker_compose.download(docker_compose_path, version=args.version)

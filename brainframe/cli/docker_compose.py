@@ -1,13 +1,22 @@
 from pathlib import Path
 from typing import List
-import shutil
 
-from . import os_utils
+from . import os_utils, print_utils, env_vars
 
 
 BRAINFRAME_DOCKER_COMPOSE_URL = (
     "https://aotu.ai/releases/brainframe/{version}/docker-compose.yml"
 )
+
+
+def assert_installed(install_path: Path):
+    compose_path = install_path / "docker-compose.yml"
+
+    if not compose_path.is_file():
+        print_utils.fail_translate(
+            "general.brainframe-must-be-installed",
+            install_env_var=env_vars.INSTALL_PATH,
+        )
 
 
 def run(install_path: Path, commands: List[str]):
