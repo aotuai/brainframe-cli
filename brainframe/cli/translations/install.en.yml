@@ -1,17 +1,20 @@
 en:
-  description: "Installs the BrainFrame server. By default, this command will
-  prompt the user for configuration information interactively. If the
-  --noninteractive flag is provided, configuration may be provided using
-  flags."
-  usage: "brainframe install [<args>]"
-  thanks: "Thanks for using BrainFrame! This installer will handle downloading
-  and setting up the server.\n
-  This installer can also be run non-interactively with the --noninteractive
-  option."
+  description: >-
+    Installs the BrainFrame server. Most users will be able to run
+    this command without worrying about the flags. You will be prompted for
+    each configuration option interactively.
 
-  noninteractive-help: "Prevents this command from prompting for input and
-  pulls configuration from flags instead. This can be useful for automated
-  deployments."
+    Alternatively, all configuration can be provided using flags instead. If
+    any flags are provided, the command will no longer run interactively. This
+    is useful when using this command in a script as part of an automated
+    deployment.
+  usage: "brainframe install [<args>]"
+  thanks: >-
+    Thanks for using BrainFrame! This installer will handle downloading and
+    setting up the server.
+    This installer can also be configured non-interactively with flags. Run
+    "brainframe install -h" for details.
+
   install-path-help: "The path that the docker-compose.yml will be installed
   to"
   data-path-help: "The path where BrainFrame will write data to at runtime"

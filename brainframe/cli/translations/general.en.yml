@@ -4,3 +4,5 @@ en:
   invalid-yes-no-input: "Please enter either a \"y\" or an \"n\"."
   default: "Default"
   downloading-docker-compose: "Downloading docker-compose.yml..."
+  noninteractive-help: "Prevents this command from prompting for input and
+  pulls configuration from flags instead. This can be useful for scripts."

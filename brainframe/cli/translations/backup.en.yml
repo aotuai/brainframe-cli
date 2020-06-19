@@ -1,12 +1,10 @@
 en:
-  description: "Backs up data from the BrainFrame server"
+  description: "Backs up data from the BrainFrame server. This command must
+  stop the server before the backup begins."
   usage: "brainframe backup [<args>]"
   destination-help: "The directory that data should be backed up to. By
   default, a directory will be created in \"%{backup_dir}\" with the current
   date and time."
-  noninteractive-help: "Prevents this command from prompting for input. This
-  can be useful for automated backups. Note that this command will
-  automatically stop BrainFrame before the backup."
   install-rsync-help: "If provided, rsync will be automatically installed if
   it is not present. This is only available for supported operating systems."
   no-rsync: "The rsync command is not installed. Please install it using your

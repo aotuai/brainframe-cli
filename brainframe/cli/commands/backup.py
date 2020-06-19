@@ -71,7 +71,7 @@ def _parse_args(data_path: Path):
     parser.add_argument(
         "--noninteractive",
         action="store_true",
-        help=i18n.t("backup.noninteractive_help"),
+        help=i18n.t("general.noninteractive-help"),
     )
 
     parser.add_argument(

@@ -34,6 +34,12 @@ def _parse_args():
     )
 
     parser.add_argument(
+        "--noninteractive",
+        action="store_true",
+        help=i18n.t("general.noninteractive-help"),
+    )
+
+    parser.add_argument(
         "--version",
         type=str,
         default="latest",
