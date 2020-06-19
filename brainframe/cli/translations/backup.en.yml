@@ -16,8 +16,8 @@ en:
   ask-stop-brainframe: "Before the backup can be started, the BrainFrame server
   must be stopped. Is this okay?"
   ask-start-brainframe: "Would you like to start BrainFrame?"
-  ask-install-rsync: "This script can attempt to install rsync for you through
-  apt. Would you like to do this?"
+  ask-install-rsync: "This script can install rsync for you through apt. Would
+  you like to do this?"
   directory-exists: "Backup directory \"{directory}\" already exists. Please
   choose a nonexistent directory."
   complete: "The backup was completed successfully"

@@ -57,6 +57,8 @@ en:
   {error}"
   ask-install-docker-compose: "This script can attempt to install Docker
   Compose for you using pip. Would you like to do this?"
+  ask-install-curl: "This script can install curl for you through apt. Would
+  you like to do this?"
   ask-docker-compose-path: "Where should Docker Compose be installed to?"
   get-docker-compose-failed: "Failed to download Docker Compose: {error}"
   unsupported-os: "Warning: You are using an unsupported operating system.
