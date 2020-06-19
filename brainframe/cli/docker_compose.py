@@ -13,7 +13,7 @@ BRAINFRAME_DOCKER_COMPOSE_URL = (
 def run(install_path: Path, commands: List[str]):
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = [_find_docker_compose(), "-f", str(compose_path)]
+    full_command = ["docker-compose", "-f", str(compose_path)]
 
     # Provide the override file if it exists
     compose_override_path = install_path / "docker-compose.override.yml"
@@ -36,13 +36,3 @@ def download(target: Path, version):
     if run_as_root:
         # Fix up the permissions if we ran as root
         os_utils.run(["chgrp", "brainframe", str(target)])
-
-
-def _find_docker_compose() -> str:
-    if shutil.which("docker-compose") is not None:
-        return "docker-compose"
-
-    # The script can do a user-level installation of Docker Compose with pip,
-    # and this fallback ensures that we can find that binary even if the user
-    # doesn't have ~/.local/bin in their $PATH.
-    return str(Path.home() / ".local/bin/docker-compose")
