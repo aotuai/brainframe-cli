@@ -47,7 +47,7 @@ def is_root():
     return os.geteuid() == 0
 
 
-def mkdir(path: Path):
+def mkdir_root_fallback(path: Path):
     """Makes a directory, asking the user for root permissions if necessary."""
     try:
         path.mkdir(parents=True, exist_ok=True)
