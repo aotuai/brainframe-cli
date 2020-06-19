@@ -11,3 +11,5 @@ en:
   been installed yet. Have you run \"brainframe install\"? If you've installed
   to a custom location, ensure that the %{install_env_var} environment variable
   has been set."
+  mkdir-permission-denied: "Permission denied while making directory
+  %{directory}, trying with sudo."

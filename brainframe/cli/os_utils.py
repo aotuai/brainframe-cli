@@ -2,6 +2,7 @@ import subprocess
 import os
 import sys
 from typing import List
+from pathlib import Path
 
 import i18n
 import distro
@@ -25,8 +26,12 @@ def create_group(group_name):
 
 
 def is_in_group(group_name):
-    print_utils.translate("general.checking-group", group=group_name)
-    result = run(["groups"], stdout=subprocess.PIPE, encoding="utf-8")
+    result = run(
+        ["groups"],
+        stdout=subprocess.PIPE,
+        encoding="utf-8",
+        print_command=False,
+    )
     return group_name in result.stdout.split()
 
 
@@ -42,13 +47,31 @@ def is_root():
     return os.geteuid() == 0
 
 
+def mkdir(path: Path):
+    """Makes a directory, asking the user for root permissions if necessary."""
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        # Fall back to bash so we can ask for root permissions
+        print_utils.translate(
+            "general.mkdir-permission-denied", directory=str(path)
+        )
+        run(["mkdir", str(path)], root=True)
+
+
 def run(
-    command: List[str], root=False, exit_on_failure=True, *args, **kwargs,
+    command: List[str],
+    root=False,
+    print_command=True,
+    exit_on_failure=True,
+    *args,
+    **kwargs,
 ) -> subprocess.CompletedProcess:
     """A small wrapper around subprocess.run.
 
     :param command: The command to run
     :param root: If True, ensure the command is run with root permissions
+    :param print_command: If True, the command will be printed before being run
     :param exit_on_failure: If True, the application will exit if the command
         results in a non-zero exit code
     """
@@ -56,7 +79,8 @@ def run(
         # Ask for root permissions with sudo
         command = ["sudo"] + command
 
-    print_utils.print_color(" ".join(command), print_utils.Color.MAGENTA)
+    if print_command:
+        print_utils.print_color(" ".join(command), print_utils.Color.MAGENTA)
     result = subprocess.run(command, *args, **kwargs)
     if result.returncode != 0 and exit_on_failure:
         sys.exit(result.returncode)

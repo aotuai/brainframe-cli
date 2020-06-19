@@ -51,7 +51,7 @@ def install():
         install_path = print_utils.ask_path(
             "install.ask-brainframe-install-path", defaults.INSTALL_PATH
         )
-    install_path.mkdir(exist_ok=True, parents=True)
+    os_utils.mkdir(install_path)
 
     # Set up the data path
     if args.noninteractive:
@@ -60,7 +60,7 @@ def install():
         data_path = print_utils.ask_path(
             "install.ask-data-path", defaults.DATA_PATH
         )
-    data_path.mkdir(exist_ok=True, parents=True)
+    os_utils.mkdir(data_path)
 
     # Set up permissions with the 'brainframe' group
     print_utils.translate("install.create-group-justification")
