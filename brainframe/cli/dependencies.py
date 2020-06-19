@@ -74,11 +74,11 @@ docker_compose = Dependency(
 rsync = Dependency(
     "rsync",
     "install.ask-install-rsync",
-    lambda: os_utils.run(["apt-get", "install", "-y", "rsync"]),
+    lambda: os_utils.run(["apt-get", "install", "-y", "rsync"], root=True),
 )
 
 curl = Dependency(
     "curl",
     "install.ask-install-curl",
-    lambda: os_utils.run(["apt-get", "install", "-y", "curl"]),
+    lambda: os_utils.run(["apt-get", "install", "-y", "curl"], root=True),
 )
