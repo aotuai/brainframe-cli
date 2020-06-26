@@ -18,7 +18,7 @@ def create_group(group_name):
         return
 
     # Create the group
-    result = run(["groupadd", group_name], root=True)
+    result = run(["groupadd", group_name])
     if result.returncode != 0:
         message = i18n.t("install.create-group-failure")
         message = message.format(error=str(result.stderr))
@@ -27,7 +27,7 @@ def create_group(group_name):
 
 def is_in_group(group_name):
     result = run(
-        ["groups"],
+        ["groups", _current_user()],
         stdout=subprocess.PIPE,
         encoding="utf-8",
         print_command=False,
@@ -37,26 +37,23 @@ def is_in_group(group_name):
 
 def add_to_group(group_name):
     print_utils.translate("general.adding-to-group", group=group_name)
-    result = run(["whoami"], stdout=subprocess.PIPE, encoding="utf-8")
-    user = result.stdout.strip()
-
-    run(["usermod", "-a", "-G", group_name, user], root=True)
+    run(["usermod", "-a", "-G", group_name, _current_user()])
 
 
 def is_root():
     return os.geteuid() == 0
 
 
-def mkdir_root_fallback(path: Path):
-    """Makes a directory, asking the user for root permissions if necessary."""
-    try:
-        path.mkdir(parents=True, exist_ok=True)
-    except PermissionError:
-        # Fall back to bash so we can ask for root permissions
-        print_utils.translate(
-            "general.mkdir-permission-denied", directory=str(path)
-        )
-        run(["mkdir", str(path)], root=True)
+def _current_user():
+    if "SUDO_USER" in os.environ:
+        # The user is running with sudo. Use $SUDO_USER to get the username of
+        # the user running sudo instead of root.
+        return os.environ["SUDO_USER"]
+    else:
+        # "Why not use $USER here?" you might ask. Apparently $LOGNAME is a
+        # POSIX standard and $USER is not.
+        # https://unix.stackexchange.com/a/76369/117461
+        return os.environ["LOGNAME"]
 
 
 def run(

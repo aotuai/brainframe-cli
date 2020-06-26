@@ -58,7 +58,7 @@ def _install_docker():
     os_utils.run(
         ["curl", "-fsSL", "https://get.docker.com", "-o", "/tmp/get-docker.sh"]
     )
-    os_utils.run(["sh", "/tmp/get-docker.sh"], root=True)
+    os_utils.run(["sh", "/tmp/get-docker.sh"])
 
 
 docker = Dependency("docker", "install.ask-install-docker", _install_docker,)
@@ -74,11 +74,11 @@ docker_compose = Dependency(
 rsync = Dependency(
     "rsync",
     "install.ask-install-rsync",
-    lambda: os_utils.run(["apt-get", "install", "-y", "rsync"], root=True),
+    lambda: os_utils.run(["apt-get", "install", "-y", "rsync"]),
 )
 
 curl = Dependency(
     "curl",
     "install.ask-install-curl",
-    lambda: os_utils.run(["apt-get", "install", "-y", "curl"], root=True),
+    lambda: os_utils.run(["apt-get", "install", "-y", "curl"]),
 )

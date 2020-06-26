@@ -4,6 +4,7 @@ en:
     this command without worrying about the flags. You will be prompted for
     each configuration option interactively.
 
+
     Alternatively, all configuration can be provided using flags instead. If
     any flags are provided, the command will no longer run interactively. This
     is useful when using this command in a script as part of an automated
@@ -12,6 +13,7 @@ en:
   thanks: >-
     Thanks for using BrainFrame! This installer will handle downloading and
     setting up the server.
+
     This installer can also be configured non-interactively with flags. Run
     "brainframe install -h" for details.
 
@@ -32,6 +34,7 @@ en:
   version-help: "The version of the BrainFrame server to install in the format
   vX.Y.Z, or 'latest' to install the latest version"
 
+  user-not-root: "This command must be run as root!"
   install-dependency-unsupported-os: "Automatic dependency installation is not
   supported for this operating system."
   missing-dependency: "Dependency %{dependency} appears to be missing"
@@ -43,8 +46,7 @@ en:
   ask-data-path: "What path should BrainFrame write data to?"
   create-group-justification: "The script will now create a \"brainframe\"
   group. This group will be used to give the BrainFrame server write access to
-  the install and data directories. These commands will need to be run with
-  root permissions."
+  the install and data directories."
   downloading-images: "Downloading BrainFrame images..."
   ask-start: "Do you want to start BrainFrame now?"
   group-exists: "The \"brainframe\" group already exists"
@@ -68,7 +70,8 @@ en:
   BrainFrame will likely still work, but some dependencies may have to be
   installed manually."
   ask-add-to-group: "Would you like to add your user to the \"brainframe\"
-  group? Doing so will allow you to use this command without root permissions."
+  group? Doing so will allow you to manage BrainFrame without root
+  permissions."
   ask-add-to-docker-group: "Would you like to add your user to the \"docker\"
   group? Doing so will allow the BrainFrame CLI to interact with Docker without
   root permissions."

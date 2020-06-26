@@ -17,6 +17,9 @@ from .utils import subcommand_parse_args
 def install():
     args = _parse_args()
 
+    if not os_utils.is_root():
+        print_utils.fail_translate("install.user-not-root")
+
     # Print some introductory text
     if not args.noninteractive:
         print_utils.art()
@@ -33,7 +36,7 @@ def install():
         args.noninteractive, args.install_docker_compose
     )
 
-    if not os_utils.is_in_group("docker") and not os_utils.is_root():
+    if not os_utils.is_in_group("docker"):
         if args.noninteractive:
             add_to_group = args.add_to_docker_group
         else:
@@ -51,7 +54,7 @@ def install():
         install_path = print_utils.ask_path(
             "install.ask-brainframe-install-path", defaults.INSTALL_PATH
         )
-    os_utils.mkdir_root_fallback(install_path)
+    install_path.mkdir(exist_ok=True, parents=True)
 
     # Set up the data path
     if args.noninteractive:
@@ -60,14 +63,13 @@ def install():
         data_path = print_utils.ask_path(
             "install.ask-data-path", defaults.DATA_PATH
         )
-    os_utils.mkdir_root_fallback(data_path)
+    data_path.mkdir(exist_ok=True, parents=True)
 
     # Set up permissions with the 'brainframe' group
     print_utils.translate("install.create-group-justification")
     os_utils.create_group("brainframe")
     os_utils.run(
-        ["chgrp", "-R", "brainframe", str(data_path), str(install_path)],
-        root=True,
+        ["chgrp", "-R", "brainframe", str(data_path), str(install_path)]
     )
 
     # Ask the user if they want to be part of the "brainframe" group
