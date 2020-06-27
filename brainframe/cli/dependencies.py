@@ -67,7 +67,7 @@ docker = Dependency("docker", "install.ask-install-docker", _install_docker,)
 docker_compose = Dependency(
     "docker-compose",
     "install.ask-install-docker-compose",
-    lambda: os_utils.run(["pip3", "install", "--user", "docker-compose"]),
+    lambda: os_utils.run(["pip3", "install", "docker-compose"]),
 )
 
 
