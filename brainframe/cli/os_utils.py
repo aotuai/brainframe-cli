@@ -1,8 +1,8 @@
 import subprocess
 import os
 import sys
-from typing import List
 from pathlib import Path
+from typing import List
 
 import i18n
 import distro
@@ -10,7 +10,10 @@ import distro
 from . import print_utils
 
 
-def create_group(group_name):
+BRAINFRAME_GROUP_ID = 1386
+
+
+def create_group(group_name: str, group_id: int):
     # Check if the group exists
     result = run(["getent", "group", group_name], exit_on_failure=False)
     if result.returncode == 0:
@@ -18,7 +21,7 @@ def create_group(group_name):
         return
 
     # Create the group
-    result = run(["groupadd", group_name])
+    result = run(["groupadd", group_name, "--gid", str(group_id)])
     if result.returncode != 0:
         message = i18n.t("install.create-group-failure")
         message = message.format(error=str(result.stderr))
@@ -44,6 +47,13 @@ def is_root():
     return os.geteuid() == 0
 
 
+def give_brainframe_group_rw_access(paths: List[Path]):
+    paths_str = [str(p) for p in paths]
+
+    run(["chgrp", "-R", "brainframe"] + paths_str)
+    run(["chmod", "g+rwx"] + paths_str)
+
+
 def _current_user():
     if "SUDO_USER" in os.environ:
         # The user is running with sudo. Use $SUDO_USER to get the username of
@@ -58,7 +68,6 @@ def _current_user():
 
 def run(
     command: List[str],
-    root=False,
     print_command=True,
     exit_on_failure=True,
     *args,
@@ -67,15 +76,10 @@ def run(
     """A small wrapper around subprocess.run.
 
     :param command: The command to run
-    :param root: If True, ensure the command is run with root permissions
     :param print_command: If True, the command will be printed before being run
     :param exit_on_failure: If True, the application will exit if the command
         results in a non-zero exit code
     """
-    if root and not is_root():
-        # Ask for root permissions with sudo
-        command = ["sudo"] + command
-
     if print_command:
         print_utils.print_color(" ".join(command), print_utils.Color.MAGENTA)
     result = subprocess.run(command, *args, **kwargs)

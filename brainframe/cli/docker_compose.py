@@ -1,11 +1,18 @@
 from pathlib import Path
 from typing import List
 import os
+import subprocess
 
 from . import os_utils, print_utils, env_vars
 
 
+# The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
+# The URL to the latest tag, which is just a file containing the latest version
+# as a string
+BRAINFRAME_LATEST_TAG_URL = (
+    "https://{subdomain}aotu.ai/releases/brainframe/latest"
+)
 
 
 def assert_installed(install_path: Path):
@@ -31,22 +38,40 @@ def run(install_path: Path, commands: List[str]):
     os_utils.run(full_command + commands)
 
 
-def download(target: Path, version):
-    # Run the download as root if we're not in the BrainFrame group
-    run_as_root = not os_utils.is_in_group("brainframe")
-
+def download(target: Path, version="latest"):
     subdomain = ""
-    if "BRAINFRAME_STAGING" in os.environ:
+    auth_flags = []
+    if env_vars.IS_STAGING in os.environ:
         subdomain = "staging."
+        try:
+            username = os.environ[env_vars.STAGING_USERNAME]
+            password = os.environ[env_vars.STAGING_PASSWORD]
+        except KeyError:
+            print_utils.fail_translate(
+                "general.staging-missing-credentials",
+                username_env_var=env_vars.STAGING_USERNAME,
+                password_env_var=env_vars.STAGING_PASSWORD,
+            )
+        auth_flags = ["--user", f"{username}:{password}"]
+
+    if version == "latest":
+        # Check what the latest version is
+        url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
+        result = os_utils.run(
+            ["curl", "--fail", "--location", url] + auth_flags,
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+        )
+        version = result.stdout
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
         subdomain=subdomain, version=version
     )
     os_utils.run(
-        ["curl", "-o", str(target), "--fail", "--location", url],
-        root=run_as_root,
+        ["curl", "-o", str(target), "--fail", "--location", url] + auth_flags,
     )
 
-    if run_as_root:
-        # Fix up the permissions if we ran as root
-        os_utils.run(["chgrp", "brainframe", str(target)])
+    if os_utils.is_root():
+        # Fix the permissions of the docker-compose.yml so that the BrainFrame
+        # group can edit it
+        os_utils.give_brainframe_group_rw_access([target])

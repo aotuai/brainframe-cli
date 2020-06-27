@@ -67,10 +67,8 @@ def install():
 
     # Set up permissions with the 'brainframe' group
     print_utils.translate("install.create-group-justification")
-    os_utils.create_group("brainframe")
-    os_utils.run(
-        ["chgrp", "-R", "brainframe", str(data_path), str(install_path)]
-    )
+    os_utils.create_group("brainframe", os_utils.BRAINFRAME_GROUP_ID)
+    os_utils.give_brainframe_group_rw_access([data_path, install_path])
 
     # Ask the user if they want to be part of the "brainframe" group
     if args.noninteractive and args.add_to_group:
