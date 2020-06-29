@@ -7,6 +7,8 @@ import i18n
 
 
 class Color(Enum):
+    """ANSI escape codes representing colors in the terminal theme."""
+
     MAGENTA = "\033[95m"
     BLUE = "\033[94m"
     GREEN = "\033[92m"
