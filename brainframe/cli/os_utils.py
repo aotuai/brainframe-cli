@@ -59,15 +59,13 @@ def give_brainframe_group_rw_access(paths: List[Path]):
 
 
 def _current_user():
-    if "SUDO_USER" in os.environ:
-        # The user is running with sudo. Use $SUDO_USER to get the username of
-        # the user running sudo instead of root.
-        return os.environ["SUDO_USER"]
-    else:
-        # "Why not use $USER here?" you might ask. Apparently $LOGNAME is a
-        # POSIX standard and $USER is not.
-        # https://unix.stackexchange.com/a/76369/117461
-        return os.environ["LOGNAME"]
+    # If the SUDO_USER environment variable allows us to get the username of
+    # the user running sudo instead of root. If they're not using sudo, we can
+    # just pull the username from $LOGNAME.
+    # "Why not use $USER here?" you might ask. Apparently $LOGNAME is a
+    # POSIX standard and $USER is not.
+    #  https://unix.stackexchange.com/a/76369/117461
+    return os.environ.get("SUDO_USER", os.environ["LOGNAME"])
 
 
 def run(
