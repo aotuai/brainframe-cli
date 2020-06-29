@@ -62,7 +62,7 @@ def backup():
         ]
     )
 
-    print("")
+    print()
     print_utils.translate("backup.complete", color=print_utils.Color.GREEN)
 
 

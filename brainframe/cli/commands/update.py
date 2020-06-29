@@ -28,7 +28,7 @@ def update():
         docker_compose.run(install_path, ["down"])
         docker_compose.run(install_path, ["up", "-d"])
 
-    print("")
+    print()
     print_utils.translate("update.complete", color=print_utils.Color.GREEN)
 
 

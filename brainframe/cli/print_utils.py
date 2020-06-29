@@ -27,7 +27,7 @@ def ask_yes_no(message_id) -> bool:
             translate("general.invalid-yes-no-input")
             continue
 
-        print("")
+        print()
 
         return choice == "y"
 
@@ -37,7 +37,7 @@ def ask_path(message_id, default: Path) -> Path:
     message += f"[{default}] "
     choice = input_color(message, Color.BLUE)
 
-    print("")
+    print()
 
     if len(choice.strip()) == 0:
         return default

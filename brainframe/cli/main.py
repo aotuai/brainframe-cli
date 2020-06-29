@@ -32,7 +32,7 @@ def main():
 
     # Exit with a clean error when interrupted
     def on_sigint(_sig, _frame):
-        print("")
+        print()
         print_utils.fail_translate("portal.interrupted")
 
     signal.signal(signal.SIGINT, on_sigint)

@@ -24,10 +24,10 @@ def install():
     if not args.noninteractive:
         print_utils.art()
         print_utils.translate("install.thanks")
-        print("")
+        print()
     if not os_utils.is_supported():
         print_utils.warning_translate("install.unsupported-os")
-        print("")
+        print()
 
     # Check all dependencies
     dependencies.curl.ensure(args.noninteractive, args.install_curl)
@@ -103,7 +103,7 @@ def install():
         install_path != env_vars.install_path.default
         or data_path != env_vars.data_path.default
     ):
-        print("")
+        print()
         print_utils.translate("install.set-custom-directory-env-vars")
         print(
             f"\n"
@@ -114,7 +114,7 @@ def install():
     if added_to_any_group:
         print_utils.translate("install.logout-to-apply-group-changes")
 
-    print("")
+    print()
     print_utils.translate("install.complete", print_utils.Color.GREEN)
 
 
