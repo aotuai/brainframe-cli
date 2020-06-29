@@ -5,14 +5,24 @@ from datetime import datetime
 
 import i18n
 
-from brainframe.cli import print_utils, docker_compose, os_utils, dependencies
-from .utils import subcommand_parse_args
+from brainframe.cli import (
+    print_utils,
+    docker_compose,
+    os_utils,
+    dependencies,
+    env_vars,
+)
+from .utils import subcommand_parse_args, command
 
 
 BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
 
-def backup(install_path: Path, data_path: Path):
+@command("backup")
+def backup():
+    install_path = env_vars.install_path.get()
+    data_path = env_vars.data_path.get()
+
     args = _parse_args(data_path)
 
     docker_compose.assert_installed(install_path)

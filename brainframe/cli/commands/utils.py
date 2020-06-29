@@ -1,6 +1,18 @@
 from argparse import ArgumentParser
 import sys
-from abc import ABC
+
+
+by_name = {}
+"""A dict that maps command names to their corresponding function"""
+
+
+def command(name):
+    """A decorator that associates command functions to their command name."""
+
+    def wrapper(function):
+        by_name[name] = function
+
+    return wrapper
 
 
 def subcommand_parse_args(parser: ArgumentParser):

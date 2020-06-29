@@ -6,14 +6,14 @@ import i18n
 from brainframe.cli import (
     print_utils,
     docker_compose,
-    defaults,
     env_vars,
     os_utils,
     dependencies,
 )
-from .utils import subcommand_parse_args
+from .utils import subcommand_parse_args, command
 
 
+@command("install")
 def install():
     args = _parse_args()
 
@@ -55,7 +55,8 @@ def install():
         install_path = args.install_path
     else:
         install_path = print_utils.ask_path(
-            "install.ask-brainframe-install-path", defaults.INSTALL_PATH
+            "install.ask-brainframe-install-path",
+            env_vars.install_path.default,
         )
     install_path.mkdir(exist_ok=True, parents=True)
 
@@ -64,7 +65,7 @@ def install():
         data_path = args.data_path
     else:
         data_path = print_utils.ask_path(
-            "install.ask-data-path", defaults.DATA_PATH
+            "install.ask-data-path", env_vars.data_path.default
         )
     data_path.mkdir(exist_ok=True, parents=True)
 
@@ -99,15 +100,15 @@ def install():
     # Recommend to the user to add their custom paths to environment variables
     # so that future invocations of the program will know where to look.
     if (
-        install_path != defaults.INSTALL_PATH
-        or data_path != defaults.DATA_PATH
+        install_path != env_vars.install_path.default
+        or data_path != env_vars.data_path.default
     ):
         print("")
         print_utils.translate("install.set-custom-directory-env-vars")
         print(
             f"\n"
-            f'export {env_vars.INSTALL_PATH}="{install_path}"\n'
-            f'export {env_vars.DATA_PATH}="{data_path}"\n'
+            f'export {env_vars.install_path.name}="{install_path}"\n'
+            f'export {env_vars.data_path.name}="{data_path}"\n'
         )
 
     if added_to_any_group:
@@ -131,13 +132,13 @@ def _parse_args():
     parser.add_argument(
         "--install-path",
         type=Path,
-        default=defaults.INSTALL_PATH,
+        default=env_vars.install_path.default,
         help=i18n.t("install.install-path-help"),
     )
     parser.add_argument(
         "--data-path",
         type=Path,
-        default=defaults.DATA_PATH,
+        default=env_vars.data_path.default,
         help=i18n.t("install.data-path-help"),
     )
     parser.add_argument(

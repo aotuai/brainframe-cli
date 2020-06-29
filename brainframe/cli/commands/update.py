@@ -1,14 +1,16 @@
-from pathlib import Path
 from argparse import ArgumentParser
 
 import i18n
 
-from brainframe.cli import print_utils, docker_compose
-from .utils import subcommand_parse_args
+from brainframe.cli import print_utils, docker_compose, env_vars
+from .utils import subcommand_parse_args, command
 
 
-def update(install_path: Path):
+@command("update")
+def update():
     args = _parse_args()
+
+    install_path = env_vars.install_path.get()
 
     docker_compose.assert_installed(install_path)
 

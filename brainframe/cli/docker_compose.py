@@ -21,7 +21,7 @@ def assert_installed(install_path: Path):
     if not compose_path.is_file():
         print_utils.fail_translate(
             "general.brainframe-must-be-installed",
-            install_env_var=env_vars.INSTALL_PATH,
+            install_env_var=env_vars.install_path.name,
         )
 
 
@@ -41,17 +41,21 @@ def run(install_path: Path, commands: List[str]):
 def download(target: Path, version="latest"):
     subdomain = ""
     auth_flags = []
-    if env_vars.IS_STAGING in os.environ:
+
+    # Add the flags to authenticate with staging if the user wants to download
+    # from there
+    if env_vars.is_staging.is_set():
         subdomain = "staging."
-        try:
-            username = os.environ[env_vars.STAGING_USERNAME]
-            password = os.environ[env_vars.STAGING_PASSWORD]
-        except KeyError:
+
+        username = env_vars.staging_username.get()
+        password = env_vars.staging_password.get()
+        if username is None or password is None:
             print_utils.fail_translate(
                 "general.staging-missing-credentials",
-                username_env_var=env_vars.STAGING_USERNAME,
-                password_env_var=env_vars.STAGING_PASSWORD,
+                username_env_var=env_vars.staging_username.name,
+                password_env_var=env_vars.staging_password.name,
             )
+
         auth_flags = ["--user", f"{username}:{password}"]
 
     if version == "latest":
