@@ -36,6 +36,8 @@ def install():
         args.noninteractive, args.install_docker_compose
     )
 
+    added_to_any_group = False
+
     if not os_utils.is_in_group("docker"):
         if args.noninteractive:
             add_to_group = args.add_to_docker_group
@@ -46,6 +48,7 @@ def install():
 
         if add_to_group:
             os_utils.add_to_group("docker")
+            added_to_any_group = True
 
     # Set up the install path
     if args.noninteractive:
@@ -70,12 +73,16 @@ def install():
     os_utils.create_group("brainframe", os_utils.BRAINFRAME_GROUP_ID)
     os_utils.give_brainframe_group_rw_access([data_path, install_path])
 
-    # Ask the user if they want to be part of the "brainframe" group
-    if args.noninteractive and args.add_to_group:
-        os_utils.add_to_group("brainframe")
-    elif not args.noninteractive:
-        if print_utils.ask_yes_no("install.ask-add-to-group"):
+    # Optionally add the user to the "brainframe" group
+    if not os_utils.is_in_group("brainframe"):
+        if args.noninteractive:
+            add_to_group = args.add_to_group
+        else:
+            add_to_group = print_utils.ask_yes_no("install.ask-add-to-group")
+
+        if add_to_group:
             os_utils.add_to_group("brainframe")
+            added_to_any_group = True
 
     docker_compose.download(
         install_path / "docker-compose.yml", version=args.version
@@ -102,6 +109,9 @@ def install():
             f'export {env_vars.INSTALL_PATH}="{install_path}"\n'
             f'export {env_vars.DATA_PATH}="{data_path}"\n'
         )
+
+    if added_to_any_group:
+        print_utils.translate("install.logout-to-apply-group-changes")
 
     print("")
     print_utils.translate("install.complete", print_utils.Color.GREEN)
