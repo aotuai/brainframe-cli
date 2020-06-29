@@ -76,4 +76,4 @@ def download(target: Path, version="latest"):
     if os_utils.is_root():
         # Fix the permissions of the docker-compose.yml so that the BrainFrame
         # group can edit it
-        os_utils.give_brainframe_group_rw_access([target])
+        os_utils.give_brainframe_group_rwx_access(target)

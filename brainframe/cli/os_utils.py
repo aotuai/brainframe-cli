@@ -1,4 +1,5 @@
 import os
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -50,11 +51,14 @@ def is_root():
     return os.geteuid() == 0
 
 
-def give_brainframe_group_rw_access(paths: List[Path]):
-    paths_str = [str(p) for p in paths]
-
-    run(["chgrp", "-R", "brainframe"] + paths_str)
-    run(["chmod", "g+rwx"] + paths_str)
+def give_brainframe_group_rwx_access(path: Path):
+    # Make the path's group the brainframe group
+    os.chown(str(path), -1, BRAINFRAME_GROUP_ID)
+    # The owner and brainframe group should have full permissions. Others can
+    # read and execute only.
+    os.chmod(
+        str(path), stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH
+    )
 
 
 def _current_user():
