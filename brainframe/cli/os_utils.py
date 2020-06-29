@@ -10,7 +10,11 @@ import distro
 from . import print_utils
 
 
-BRAINFRAME_GROUP_ID = 1386
+BRAINFRAME_GROUP_ID = 1337
+"""An arbitrary group ID value for the 'brainframe' group. We have to specify
+the ID of the group manually to ensure that the host machine and the Docker
+containers agree on it.
+"""
 
 
 def create_group(group_name: str, group_id: int):
