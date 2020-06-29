@@ -1,6 +1,5 @@
-from argparse import ArgumentParser
 import sys
-
+from argparse import ArgumentParser
 
 by_name = {}
 """A dict that maps command names to their corresponding function"""

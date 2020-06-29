@@ -1,7 +1,7 @@
-from pathlib import Path
-from argparse import ArgumentParser
 import sys
+from argparse import ArgumentParser
 from datetime import datetime
+from pathlib import Path
 
 import i18n
 
@@ -13,7 +13,6 @@ from brainframe.cli import (
     env_vars,
 )
 from .utils import subcommand_parse_args, command
-
 
 BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 

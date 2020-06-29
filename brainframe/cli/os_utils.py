@@ -1,14 +1,13 @@
-import subprocess
 import os
+import subprocess
 import sys
 from pathlib import Path
 from typing import List
 
-import i18n
 import distro
+import i18n
 
 from . import print_utils
-
 
 BRAINFRAME_GROUP_ID = 1337
 """An arbitrary group ID value for the 'brainframe' group. We have to specify

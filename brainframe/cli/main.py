@@ -1,8 +1,7 @@
-from argparse import ArgumentParser
-import sys
-from pathlib import Path
 import os
 import signal
+import sys
+from argparse import ArgumentParser
 
 import i18n
 
@@ -53,7 +52,6 @@ def main():
 
 
 _TRANSLATIONS_PATH = os.path.join(os.path.dirname(__file__), "translations")
-
 
 if __name__ == "__main__":
     main()
