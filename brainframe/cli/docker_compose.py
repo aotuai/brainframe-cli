@@ -64,7 +64,7 @@ def download(target: Path, version="latest"):
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
-        version = result.stdout
+        version = result.stdout.strip()
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
         subdomain=subdomain, version=version
