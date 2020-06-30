@@ -12,7 +12,7 @@ class EnvironmentVariable(Generic[T]):
     def __init__(
         self,
         name,
-        default: str = None,
+        default: T = None,
         converter: Union[Type, Callable[[str], T]] = str,
     ):
         """
@@ -26,10 +26,13 @@ class EnvironmentVariable(Generic[T]):
         self.converter = converter
 
     def get(self) -> Optional[T]:
-        value = os.environ.get(self.name, self.default)
-        if value is None:
-            return None
-        return self.converter(value)
+        if self.name in os.environ:
+            value = os.environ[self.name]
+            if value is None:
+                return None
+            return self.converter(value)
+
+        return self.default
 
     def is_set(self) -> bool:
         return self.name in os.environ
@@ -37,12 +40,14 @@ class EnvironmentVariable(Generic[T]):
 
 install_path = EnvironmentVariable[Path](
     "BRAINFRAME_INSTALL_PATH",
-    default="/usr/local/share/brainframe/",
+    default=Path("/usr/local/share/brainframe/"),
     converter=Path,
 )
 
 data_path = EnvironmentVariable[Path](
-    "BRAINFRAME_DATA_PATH", default="/var/local/brainframe", converter=Path,
+    "BRAINFRAME_DATA_PATH",
+    default=Path("/var/local/brainframe"),
+    converter=Path,
 )
 
 is_staging = EnvironmentVariable[str]("BRAINFRAME_STAGING")
