@@ -24,6 +24,11 @@ def backup():
 
     args = _parse_args(data_path)
 
+    # This command has to be run as root for now because some BrainFrame
+    # services write files as the root user.
+    if not os_utils.is_root():
+        print_utils.fail_translate("general.user-not-root")
+
     docker_compose.assert_installed(install_path)
 
     dependencies.rsync.ensure(args.noninteractive, args.install_rsync)
@@ -61,6 +66,10 @@ def backup():
             str(backup_path),
         ]
     )
+
+    # Give the brainframe group access to the resulting backup, to make
+    # managing and restoring it easier
+    os_utils.give_brainframe_group_rw_access(backup_path)
 
     print()
     print_utils.translate("backup.complete", color=print_utils.Color.GREEN)

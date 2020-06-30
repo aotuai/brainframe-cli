@@ -18,7 +18,7 @@ def install():
     args = _parse_args()
 
     if not os_utils.is_root():
-        print_utils.fail_translate("install.user-not-root")
+        print_utils.fail_translate("general.user-not-root")
 
     # Print some introductory text
     if not args.noninteractive:

@@ -15,3 +15,4 @@ en:
   %{directory}, trying with sudo."
   staging-missing-credentials: "The %{username_env_var} and %{password_env_var}
   variables must be set to access staging."
+  user-not-root: "This command must be run as root!"

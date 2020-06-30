@@ -34,7 +34,6 @@ en:
   version-help: "The version of the BrainFrame server to install in the format
   vX.Y.Z, or 'latest' to install the latest version"
 
-  user-not-root: "This command must be run as root!"
   install-dependency-unsupported-os: "Automatic dependency installation is not
   supported for this operating system."
   missing-dependency: "Dependency %{dependency} appears to be missing"
