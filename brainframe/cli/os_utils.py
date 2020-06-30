@@ -54,7 +54,7 @@ def give_brainframe_group_rw_access(paths: List[Path]):
     paths_str = [str(p) for p in paths]
 
     run(["chgrp", "-R", "brainframe"] + paths_str)
-    run(["chmod", "g+rwx"] + paths_str)
+    run(["chmod", "-R", "g+rwx"] + paths_str)
 
 
 def _current_user():
