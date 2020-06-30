@@ -72,8 +72,7 @@ def install():
     # Set up permissions with the 'brainframe' group
     print_utils.translate("install.create-group-justification")
     os_utils.create_group("brainframe", os_utils.BRAINFRAME_GROUP_ID)
-    os_utils.give_brainframe_group_rwx_access(data_path)
-    os_utils.give_brainframe_group_rwx_access(install_path)
+    os_utils.give_brainframe_group_rw_access([data_path, install_path])
 
     # Optionally add the user to the "brainframe" group
     if not os_utils.is_in_group("brainframe"):
