@@ -1,0 +1,21 @@
+en:
+  description: "Backs up data from the BrainFrame server. This command must
+  stop the server before the backup begins."
+  usage: "brainframe backup [<args>]"
+  destination-help: "The directory that data should be backed up to. By
+  default, a directory will be created in \"%{backup_dir}\" with the current
+  date and time."
+  install-rsync-help: "If provided, rsync will be automatically installed if
+  it is not present. This is only available for supported operating systems."
+  no-rsync: "The rsync command is not installed. Please install it using your
+  distribution's package manager."
+  mkdir-permission-denied: "Permission denied while making the backup folder.
+  This command may need to be run as root."
+  ask-stop-brainframe: "Before the backup can be started, the BrainFrame server
+  must be stopped. Is this okay?"
+  ask-start-brainframe: "Would you like to start BrainFrame?"
+  ask-install-rsync: "This script can install rsync for you through apt. Would
+  you like to do this?"
+  directory-exists: "Backup directory \"{directory}\" already exists. Please
+  choose a nonexistent directory."
+  complete: "The backup was completed successfully"

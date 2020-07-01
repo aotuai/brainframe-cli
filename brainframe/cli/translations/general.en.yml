@@ -1,0 +1,18 @@
+en:
+  invalid-option-value: "Please input an integer value."
+  option-out-of-range: "Please choose from the provided options."
+  invalid-yes-no-input: "Please enter either a \"y\" or an \"n\"."
+  default: "Default"
+  downloading-docker-compose: "Downloading docker-compose.yml..."
+  noninteractive-help: "Prevents this command from prompting for input and
+  pulls configuration from flags instead. This can be useful for scripts."
+  adding-to-group: "Adding user to the %{group} group"
+  brainframe-must-be-installed: "It appears that the BrainFrame server has not
+  been installed yet. Have you run \"brainframe install\"? If you've installed
+  to a custom location, ensure that the %{install_env_var} environment variable
+  has been set."
+  mkdir-permission-denied: "Permission denied while making directory
+  %{directory}, trying with sudo."
+  staging-missing-credentials: "The %{username_env_var} and %{password_env_var}
+  variables must be set to access staging."
+  user-not-root: "This command must be run as root!"
