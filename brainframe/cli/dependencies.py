@@ -75,7 +75,7 @@ docker_compose = Dependency(
             # Installs globally even if the user has docker-compose installed
             # locally
             "--ignore-installed",
-            "brainframe-cli",
+            "docker-compose",
         ]
     ),
 )
