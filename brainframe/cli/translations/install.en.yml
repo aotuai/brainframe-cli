@@ -40,6 +40,11 @@ en:
   install-dependency-manually: "Please install %{dependency} and try again"
   docker-compose-download-error: "Error while downloading the
   docker-compose.yml file: {error}"
+  default-paths: "By default, the BrainFrame docker-compose.yml will be
+  installed to %{default_install_path} and data will be saved to
+  %{default_data_path}."
+  ask-use-default-paths: "Would you like to install BrainFrame to the default
+  locations?"
   ask-brainframe-install-path: "What path should BrainFrame install the
   docker-compose.yml to?"
   ask-data-path: "What path should BrainFrame write data to?"

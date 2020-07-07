@@ -50,9 +50,23 @@ def install():
             os_utils.add_to_group("docker")
             added_to_any_group = True
 
+    use_default_paths = False
+    if not args.noninteractive:
+        # Ask the user if they want to specify special paths for installation
+        print_utils.translate(
+            "install.default-paths",
+            default_install_path=env_vars.install_path.default,
+            default_data_path=env_vars.data_path.default,
+        )
+        use_default_paths = print_utils.ask_yes_no(
+            "install.ask-use-default-paths",
+        )
+
     # Set up the install path
     if args.noninteractive:
         install_path = args.install_path
+    elif use_default_paths:
+        install_path = env_vars.install_path.default
     else:
         install_path = print_utils.ask_path(
             "install.ask-brainframe-install-path",
@@ -63,6 +77,8 @@ def install():
     # Set up the data path
     if args.noninteractive:
         data_path = args.data_path
+    elif use_default_paths:
+        data_path = env_vars.data_path.default
     else:
         data_path = print_utils.ask_path(
             "install.ask-data-path", env_vars.data_path.default

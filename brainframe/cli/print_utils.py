@@ -19,14 +19,15 @@ class Color(Enum):
     UNDERLINE = "\033[4m"
 
 
-def ask_yes_no(message_id) -> bool:
+def ask_yes_no(message_id, **kwargs) -> bool:
     """Prompts the user with a yes or no question. The default value is yes.
 
     :param message_id: The ID of the question to print
     :return: The user's choice
     """
     while True:
-        choice = input_color(f"{i18n.t(message_id)} [Y/n] ", Color.BLUE)
+        question = i18n.t(message_id, **kwargs)
+        choice = input_color(f"{question} [Y/n] ", Color.BLUE)
         choice = choice.strip().lower()
         if choice not in ["y", "n", ""]:
             translate("general.invalid-yes-no-input")
@@ -39,7 +40,7 @@ def ask_yes_no(message_id) -> bool:
 
 def ask_path(message_id, default: Path) -> Path:
     message = i18n.t(message_id) + "\n"
-    message += f"[{default}] "
+    message += f"[{i18n.t('general.default')}: {default}] "
     choice = input_color(message, Color.BLUE)
 
     print()
@@ -59,7 +60,7 @@ def translate(message_id, color=Color.END, **kwargs):
 
 
 def warning_translate(message_id, color=Color.YELLOW, **kwargs):
-    print_color(i18n.t(message_id), color, **kwargs)
+    print_color(i18n.t(message_id, **kwargs), color)
 
 
 def fail_translate(message_id, **kwargs):
