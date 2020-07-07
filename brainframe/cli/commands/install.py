@@ -36,8 +36,6 @@ def install():
         args.noninteractive, args.install_docker_compose
     )
 
-    added_to_any_group = False
-
     if not os_utils.is_in_group("docker"):
         if args.noninteractive:
             add_to_group = args.add_to_docker_group
@@ -48,7 +46,6 @@ def install():
 
         if add_to_group:
             os_utils.add_to_group("docker")
-            added_to_any_group = True
 
     use_default_paths = False
     if not args.noninteractive:
@@ -99,7 +96,6 @@ def install():
 
         if add_to_group:
             os_utils.add_to_group("brainframe")
-            added_to_any_group = True
 
     docker_compose.download(
         install_path / "docker-compose.yml", version=args.version
@@ -126,9 +122,6 @@ def install():
             f'export {env_vars.install_path.name}="{install_path}"\n'
             f'export {env_vars.data_path.name}="{data_path}"\n'
         )
-
-    if added_to_any_group:
-        print_utils.translate("install.logout-to-apply-group-changes")
 
     print()
     print_utils.translate("install.complete", print_utils.Color.GREEN)

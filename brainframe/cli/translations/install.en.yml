@@ -79,5 +79,3 @@ en:
   ask-add-to-docker-group: "Would you like to add your user to the \"docker\"
   group? Doing so will allow the BrainFrame CLI to interact with Docker without
   root permissions."
-  logout-to-apply-group-changes: "Please log out and back in to apply group
-  changes."
