@@ -20,16 +20,21 @@ class Color(Enum):
 
 
 def ask_yes_no(message_id) -> bool:
+    """Prompts the user with a yes or no question. The default value is yes.
+
+    :param message_id: The ID of the question to print
+    :return: The user's choice
+    """
     while True:
-        choice = input_color(f"{i18n.t(message_id)} [y/n] ", Color.BLUE)
+        choice = input_color(f"{i18n.t(message_id)} [Y/n] ", Color.BLUE)
         choice = choice.strip().lower()
-        if choice not in ["y", "n"]:
+        if choice not in ["y", "n", ""]:
             translate("general.invalid-yes-no-input")
             continue
 
         print()
 
-        return choice == "y"
+        return choice in ["y", ""]
 
 
 def ask_path(message_id, default: Path) -> Path:
