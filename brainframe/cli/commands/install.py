@@ -104,8 +104,13 @@ def install():
     print_utils.translate("install.downloading-images")
     docker_compose.run(install_path, ["pull"])
 
+    print()
+    print_utils.translate("install.complete", print_utils.Color.GREEN)
+
     if not args.noninteractive and print_utils.ask_yes_no("install.ask-start"):
         docker_compose.run(install_path, ["up", "-d"])
+        print()
+        print_utils.translate("install.running", print_utils.Color.GREEN)
     else:
         print_utils.translate("install.how-to-start")
 
@@ -122,9 +127,6 @@ def install():
             f'export {env_vars.install_path.name}="{install_path}"\n'
             f'export {env_vars.data_path.name}="{data_path}"\n'
         )
-
-    print()
-    print_utils.translate("install.complete", print_utils.Color.GREEN)
 
 
 def _parse_args():

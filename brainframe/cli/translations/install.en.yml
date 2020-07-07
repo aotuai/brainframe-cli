@@ -57,6 +57,7 @@ en:
   how-to-start: "BrainFrame can be started by running
   \"brainframe compose up -d\"."
   complete: "BrainFrame is now installed!"
+  running: "BrainFrame is now running!"
   set-custom-directory-env-vars: "Consider adding the following to your
   ~/.bashrc (or equivalent for your shell) so that this command will know where
   your BrainFrame installation is located:"
