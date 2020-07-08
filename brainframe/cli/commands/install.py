@@ -36,7 +36,7 @@ def install():
         args.noninteractive, args.install_docker_compose
     )
 
-    if not os_utils.is_in_group("docker"):
+    if not os_utils.added_to_group("docker"):
         if args.noninteractive:
             add_to_group = args.add_to_docker_group
         else:
@@ -88,7 +88,7 @@ def install():
     os_utils.give_brainframe_group_rw_access([data_path, install_path])
 
     # Optionally add the user to the "brainframe" group
-    if not os_utils.is_in_group("brainframe"):
+    if not os_utils.added_to_group("brainframe"):
         if args.noninteractive:
             add_to_group = args.add_to_group
         else:
