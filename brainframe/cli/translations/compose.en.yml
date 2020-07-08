@@ -1,0 +1,8 @@
+en:
+  docker-bad-permissions: "Your user does not have sufficient privileges to
+  use Docker."
+  restart-for-group-access: "Your user has been added to the \"docker\" group
+  but you must restart to apply this change. Alternatively, you can try again
+  with sudo."
+  retry-with-sudo-or-group: "Please try again with sudo or consider adding your
+  user to the \"docker\" group."

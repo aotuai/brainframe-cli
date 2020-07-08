@@ -31,9 +31,27 @@ def create_group(group_name: str, group_id: int):
         print_utils.fail(message)
 
 
-def is_in_group(group_name):
+def added_to_group(group_name):
+    """Checks if the user has been added to the group, even if the group
+    addition hasn't been applied yet (i.e. by re-logging). Compare to
+    `currently_in_group`.
+    """
     result = run(
-        ["groups", _current_user()],
+        ["id", "-Gn", _current_user()],
+        stdout=subprocess.PIPE,
+        encoding="utf-8",
+        print_command=False,
+    )
+    return group_name in result.stdout.split()
+
+
+def currently_in_group(group_name):
+    """Checks if the user is currently in the group. This will be False if the
+    user was added to the group but the change hasn't been applied yet. Compare
+    to `added_to_group`.
+    """
+    result = run(
+        ["id", "-Gn"],
         stdout=subprocess.PIPE,
         encoding="utf-8",
         print_command=False,
