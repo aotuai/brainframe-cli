@@ -1,5 +1,5 @@
 en:
-  description: "Provides information on the current BrainFrame server
+  description: "Provides information about the current BrainFrame server
   installation."
   usage: "brainframe info <field>"
   field-help: "If provided, only the value of this field will be printed"
