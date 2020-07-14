@@ -15,6 +15,7 @@ en:
       brainframe install            Installs BrainFrame interactively
       brainframe compose up -d      Starts BrainFrame
       brainframe compose down       Stops BrainFrame
+      brainframe compose logs -f    View BrainFrame logs
   command-help: "The command to run"
   data-path-help: "The directory where the BrainFrame installation write data
   to"
