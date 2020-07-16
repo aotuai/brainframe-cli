@@ -26,12 +26,17 @@ def assert_installed(install_path: Path):
 def run(install_path: Path, commands: List[str]):
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = ["docker-compose", "-f", str(compose_path)]
+    full_command = ["docker-compose", "--file", str(compose_path)]
 
     # Provide the override file if it exists
     compose_override_path = install_path / "docker-compose.override.yml"
     if compose_override_path.is_file():
-        full_command += ["-f", str(compose_override_path)]
+        full_command += ["--file", str(compose_override_path)]
+
+    # Provide the .env file if it exists
+    env_path = install_path / ".env"
+    if env_path.is_file():
+        full_command += ["--env-file", str(env_path)]
 
     os_utils.run(full_command + commands)
 
