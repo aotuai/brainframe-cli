@@ -69,7 +69,7 @@ def backup():
 
     # Give the brainframe group access to the resulting backup, to make
     # managing and restoring it easier
-    os_utils.give_brainframe_group_rw_access(backup_path)
+    os_utils.give_brainframe_group_rw_access([backup_path])
 
     print()
     print_utils.translate("backup.complete", color=print_utils.Color.GREEN)
