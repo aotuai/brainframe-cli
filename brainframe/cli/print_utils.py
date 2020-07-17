@@ -2,6 +2,7 @@ import sys
 from enum import Enum
 from pathlib import Path
 import os
+import readline
 
 import i18n
 
@@ -95,7 +96,6 @@ _DOCKER_COMPOSE_DOWNLOAD_URL = (
     "https://github.com/docker/compose/releases/download/1.25.5/"
     "docker-compose-Linux-x86_64"
 )
-
 
 _BRAINFRAME_ART = r"""
  _______            __       _______
