@@ -14,6 +14,12 @@ def update():
 
     docker_compose.assert_installed(install_path)
 
+    _, _, upgrade_version = docker_compose.check_download_version()
+    existing_version = docker_compose.check_existing_version(install_path)
+    print_utils.translate("update.upgrade-version",
+                          existing_version=existing_version,
+                          upgrade_version=upgrade_version)
+
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
     docker_compose.download(docker_compose_path, version=args.version)

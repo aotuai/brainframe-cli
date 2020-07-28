@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 from typing import List
+import yaml
 
 from . import os_utils, print_utils, env_vars
 
@@ -42,6 +43,22 @@ def run(install_path: Path, commands: List[str]):
 
 
 def download(target: Path, version="latest"):
+    subdomain, auth_flags, version = check_download_version(version=version)
+
+    url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
+        subdomain=subdomain, version=version
+    )
+    os_utils.run(
+        ["curl", "-o", str(target), "--fail", "--location", url] + auth_flags,
+    )
+
+    if os_utils.is_root():
+        # Fix the permissions of the docker-compose.yml so that the BrainFrame
+        # group can edit it
+        os_utils.give_brainframe_group_rw_access([target])
+
+
+def check_download_version(version="latest"):
     subdomain = ""
     auth_flags = []
 
@@ -65,20 +82,20 @@ def download(target: Path, version="latest"):
         # Check what the latest version is
         url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
         result = os_utils.run(
-            ["curl", "--fail", "--location", url] + auth_flags,
+            ["curl", "--fail", "-s", "--location", url] + auth_flags,
+            print_command=False,
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
         version = result.stdout.strip()
 
-    url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
-        subdomain=subdomain, version=version
-    )
-    os_utils.run(
-        ["curl", "-o", str(target), "--fail", "--location", url] + auth_flags,
-    )
+    return subdomain, auth_flags, version
 
-    if os_utils.is_root():
-        # Fix the permissions of the docker-compose.yml so that the BrainFrame
-        # group can edit it
-        os_utils.give_brainframe_group_rw_access([target])
+
+def check_existing_version(install_path: Path):
+    compose_path = install_path / "docker-compose.yml"
+    with open(str(compose_path)) as yml:
+        compose = yaml.load(yml, Loader=yaml.SafeLoader)
+    version = compose["services"]["core"]["image"].split(":")[-1]
+    version = "v" + version
+    return version

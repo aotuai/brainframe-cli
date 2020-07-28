@@ -9,3 +9,5 @@ en:
   ask-restart: "Would you like to restart the BrainFrame server to apply the
   update?"
   complete: "BrainFrame has been updated!"
+  upgrade-version: "BrainFrame:%{existing_version} detected under your installation
+  location, we will upgrade it to BrainFrame:%{upgrade_version}"

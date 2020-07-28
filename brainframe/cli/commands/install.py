@@ -36,6 +36,9 @@ def install():
         args.noninteractive, args.install_docker_compose
     )
 
+    _, _, download_version = docker_compose.check_download_version()
+    print_utils.translate("install.install-version", version=download_version)
+
     if not os_utils.added_to_group("docker"):
         if args.noninteractive:
             add_to_group = args.add_to_docker_group
@@ -117,8 +120,8 @@ def install():
     # Recommend to the user to add their custom paths to environment variables
     # so that future invocations of the program will know where to look.
     if (
-        install_path != env_vars.install_path.default
-        or data_path != env_vars.data_path.default
+            install_path != env_vars.install_path.default
+            or data_path != env_vars.data_path.default
     ):
         print()
         print_utils.translate("install.set-custom-directory-env-vars")
