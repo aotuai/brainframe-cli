@@ -94,8 +94,7 @@ def check_download_version(version="latest"):
 
 def check_existing_version(install_path: Path):
     compose_path = install_path / "docker-compose.yml"
-    with open(str(compose_path)) as yml:
-        compose = yaml.load(yml, Loader=yaml.SafeLoader)
+    compose = yaml.load(compose_path.read_text(), Loader=yaml.SafeLoader)
     version = compose["services"]["core"]["image"].split(":")[-1]
     version = "v" + version
     return version

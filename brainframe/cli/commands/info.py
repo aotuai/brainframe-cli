@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 
 import i18n
 
-from brainframe.cli import env_vars, print_utils
+from brainframe.cli import env_vars, print_utils, docker_compose
 from .utils import subcommand_parse_args, command
 
 
@@ -10,9 +10,15 @@ from .utils import subcommand_parse_args, command
 def info():
     args = _parse_args()
 
+    docker_compose.assert_installed(env_vars.install_path.get())
+
+    server_version = docker_compose.check_existing_version(
+        env_vars.install_path.get())
+
     fields = {
         "install_path": env_vars.install_path.get(),
         "data_path": env_vars.data_path.get(),
+        "server_version": server_version,
     }
 
     if args.field is None:
