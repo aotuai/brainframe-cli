@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from packaging import version
 
 import i18n
 
@@ -16,6 +17,12 @@ def update():
 
     _, _, upgrade_version = docker_compose.check_download_version()
     existing_version = docker_compose.check_existing_version(install_path)
+    if version.parse(existing_version) >= version.parse(upgrade_version):
+        if not args.downgrade:
+            print_utils.fail_translate("update.version-failing",
+                                       existing_version=existing_version,
+                                       upgrade_version=upgrade_version)
+
     print_utils.translate("update.upgrade-version",
                           existing_version=existing_version,
                           upgrade_version=upgrade_version)
@@ -58,6 +65,12 @@ def _parse_args():
 
     parser.add_argument(
         "--restart", action="store_true", help=i18n.t("update.restart-help")
+    )
+
+    parser.add_argument(
+        "--downgrade",
+        action="store_true",
+        help=i18n.t("update.downgrade-help"),
     )
 
     return subcommand_parse_args(parser)
