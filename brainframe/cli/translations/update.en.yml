@@ -10,4 +10,4 @@ en:
   update?"
   complete: "BrainFrame has been updated!"
   upgrade-version: "BrainFrame:%{existing_version} detected under your installation
-  location, we will upgrade it to BrainFrame:%{upgrade_version}"
+  location, we will replace it with BrainFrame:%{upgrade_version}"
