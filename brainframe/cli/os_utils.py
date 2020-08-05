@@ -15,6 +15,8 @@ the ID of the group manually to ensure that the host machine and the Docker
 containers agree on it.
 """
 
+current_command = None
+
 
 def create_group(group_name: str, group_id: int):
     # Check if the group exists
@@ -42,7 +44,7 @@ def added_to_group(group_name):
         encoding="utf-8",
         print_command=False,
     )
-    return group_name in result.stdout.split()
+    return group_name in result.stdout.readline().split()
 
 
 def currently_in_group(group_name):
@@ -56,7 +58,7 @@ def currently_in_group(group_name):
         encoding="utf-8",
         print_command=False,
     )
-    return group_name in result.stdout.split()
+    return group_name in result.stdout.readline().split()
 
 
 def add_to_group(group_name):
@@ -91,7 +93,7 @@ def run(
     exit_on_failure=True,
     *args,
     **kwargs,
-) -> subprocess.CompletedProcess:
+) -> subprocess.Popen:
     """A small wrapper around subprocess.run.
 
     :param command: The command to run
@@ -101,10 +103,13 @@ def run(
     """
     if print_command:
         print_utils.print_color(" ".join(command), print_utils.Color.MAGENTA)
-    result = subprocess.run(command, *args, **kwargs)
-    if result.returncode != 0 and exit_on_failure:
-        sys.exit(result.returncode)
-    return result
+    cmd = subprocess.Popen(command, *args, **kwargs)
+    global current_command
+    current_command = cmd
+    cmd.wait()
+    if cmd.returncode != 0 and exit_on_failure:
+        sys.exit(cmd.returncode)
+    return cmd
 
 
 _SUPPORTED_DISTROS = {

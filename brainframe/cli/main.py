@@ -9,6 +9,7 @@ from brainframe.cli import (
     print_utils,
     commands,
     env_vars,
+    os_utils,
 )
 
 
@@ -33,6 +34,8 @@ def main():
     # Exit with a clean error when interrupted
     def on_sigint(_sig, _frame):
         print()
+        if os_utils.current_command is not None:
+            os_utils.current_command.send_signal(_sig)
         print_utils.fail_translate("portal.interrupted")
 
     signal.signal(signal.SIGINT, on_sigint)

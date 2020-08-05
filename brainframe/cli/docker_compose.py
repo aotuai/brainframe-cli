@@ -87,7 +87,7 @@ def check_download_version(version="latest"):
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
-        version = result.stdout.strip()
+        version = result.stdout.readline().strip()
 
     return subdomain, auth_flags, version
 
