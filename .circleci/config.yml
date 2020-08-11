@@ -26,11 +26,11 @@ jobs:
     docker:
       - image: circleci/python:3.6
     environment:
-      POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
+      POETRY_REPOSITORIES_TESTPYPI_URL: https://test.pypi.org/legacy/
+      POETRY_HTTP_BASIC_TESTPYPI_USERNAME: __token__
 
     steps:
       - checkout
       - run: pip3 install --upgrade poetry
       - run: poetry build
-      - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
-      - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${TEST_PYPI_PASSWORD} poetry publish -r testpypi
+      - run: POETRY_HTTP_BASIC_TESTPYPI_PASSWORD=${TEST_PYPI_PASSWORD} poetry publish -r testpypi
