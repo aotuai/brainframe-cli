@@ -120,8 +120,8 @@ def install():
     # Recommend to the user to add their custom paths to environment variables
     # so that future invocations of the program will know where to look.
     if (
-            install_path != env_vars.install_path.default
-            or data_path != env_vars.data_path.default
+        install_path != env_vars.install_path.default
+        or data_path != env_vars.data_path.default
     ):
         print()
         print_utils.translate("install.set-custom-directory-env-vars")

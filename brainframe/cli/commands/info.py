@@ -13,7 +13,8 @@ def info():
     docker_compose.assert_installed(env_vars.install_path.get())
 
     server_version = docker_compose.check_existing_version(
-        env_vars.install_path.get())
+        env_vars.install_path.get()
+    )
 
     fields = {
         "install_path": env_vars.install_path.get(),
