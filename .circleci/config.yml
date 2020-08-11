@@ -32,4 +32,5 @@ jobs:
       - checkout
       - run: pip3 install --upgrade poetry
       - run: poetry build
+      - run: poetry config repositories.testpypi https://test.pypi.org/legacy/
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${TEST_PYPI_PASSWORD} poetry publish -r testpypi
