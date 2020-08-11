@@ -1,0 +1,35 @@
+version: 2.1
+
+workflows:
+  lint-and-deploy:
+    jobs:
+      - lint
+      - upload_to_pypi:
+          filters:
+            # Ignore any commit on any branch by default
+            branches:
+              ignore: /.*/
+            # Run only when a tag is created
+            tags:
+              only: v*.*.*
+
+jobs:
+  lint:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - run: pip3 install --upgrade mypy black
+      - run: black --check .
+      - run: mypy -p "brainframe.cli"
+  upload_to_pypi:
+    docker:
+      - image: circleci/python:3.6
+    environment:
+      POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
+
+    steps:
+      - checkout
+      - run: pip3 install --upgrade poetry
+      - run: poetry build
+      - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${TEST_PYPI_PASSWORD} poetry publish -r testpypi
