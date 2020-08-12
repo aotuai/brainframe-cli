@@ -1,17 +1,20 @@
 version: 2.1
 
 workflows:
-  lint-and-deploy:
+  lint:
     jobs:
       - lint
+  deploy:
+    jobs:
       - upload_to_pypi
-#          filters:
-#            # Ignore any commit on any branch by default
-#            branches:
-#              ignore: /.*/
-#            # Run only when a tag is created
-#            tags:
-#              only: v*.*.*
+          filters:
+            # Ignore any commit on any branch by default
+            branches:
+              ignore: /.*/
+            # Run only when a tag is created
+            tags:
+              only: v*.*.*
+
 
 jobs:
   lint:
