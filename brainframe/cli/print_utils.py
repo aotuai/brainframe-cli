@@ -20,6 +20,14 @@ class Color(Enum):
     UNDERLINE = "\033[4m"
 
 
+# These delimiters tell GNU readline that any characters between them are
+# non-visible. These should be put before and after ASCII escape codes. Without
+# these, escape codes mess up readline's text wrapping support.
+# See: https://superuser.com/a/301355
+_NON_VISIBLE_START = "\001"
+_NON_VISIBLE_END = "\002"
+
+
 def ask_yes_no(message_id, **kwargs) -> bool:
     """Prompts the user with a yes or no question. The default value is yes.
 
@@ -80,7 +88,13 @@ def print_color(message, color: Color, **kwargs) -> None:
 
 def input_color(message, color: Color) -> str:
     color = _check_no_color(color)
-    return input(f"{color.value}{message}{Color.END.value}")
+    # See https://superuser.com/a/301355 for why these non-visible delimiters
+    # are necessary for input()
+    return input(
+        f"{_NON_VISIBLE_START}{color.value}{_NON_VISIBLE_END}"
+        f"{message}"
+        f"{_NON_VISIBLE_START}{Color.END.value}{_NON_VISIBLE_END}"
+    )
 
 
 def _check_no_color(color: Color) -> Color:
@@ -108,3 +122,7 @@ _BRAINFRAME_ART = r"""
                                         Installer
 
 """
+
+# Importing readline has the side-effect of augmenting the `input` function
+# with GNU readline features.
+_ = readline
