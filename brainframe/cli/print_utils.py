@@ -82,19 +82,15 @@ def fail(message, **kwargs):
 
 
 def print_color(message, color: Color, **kwargs) -> None:
-    print(_add_color_codes(message, color), **kwargs)
+    color = _check_no_color(color)
+    print(f"{color.value}{message}{Color.END.value}", **kwargs)
 
 
 def input_color(message, color: Color) -> str:
-    return input(_add_color_codes(message, color))
-
-
-def _add_color_codes(message, color: Color) -> str:
-    """Wraps the given message in the correct escape codes for the provided
-    color.
-    """
     color = _check_no_color(color)
-    return (
+    # See https://superuser.com/a/301355 for why these non-visible delimiters
+    # are necessary for input()
+    return input(
         f"{_NON_VISIBLE_START}{color.value}{_NON_VISIBLE_END}"
         f"{message}"
         f"{_NON_VISIBLE_START}{Color.END.value}{_NON_VISIBLE_END}"
