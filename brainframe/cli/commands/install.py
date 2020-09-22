@@ -129,8 +129,8 @@ def install():
     # Recommend to the user to add their custom paths to environment variables
     # so that future invocations of the program will know where to look.
     if (
-            install_path != env_vars.install_path.default
-            or data_path != env_vars.data_path.default
+        install_path != env_vars.install_path.default
+        or data_path != env_vars.data_path.default
     ):
         print()
         print_utils.translate("install.set-custom-directory-env-vars")
@@ -200,7 +200,7 @@ def _parse_args():
 
 
 def check_location() -> str:
-    url = 'http://ipinfo.io/json'
+    url = "http://ipinfo.io/json"
     try:
         response = urlopen(url, timeout=5)
     except Exception:
@@ -217,22 +217,25 @@ def get_docker_config() -> dict:
 
 def update_docker_mirror(docker_config: dict, location: str):
     docker_mirror_host = {"CN": "USTC", "US": "Docker Hub"}
-    if location == "CN" and \
-            ("registry-mirrors" not in docker_config.keys() or
-             docker_config["registry-mirrors"] !=
-             ["https://docker.mirrors.ustc.edu.cn/"]):
-        docker_config["registry-mirrors"] = \
-            ["https://docker.mirrors.ustc.edu.cn/"]
+    if location == "CN" and (
+        "registry-mirrors" not in docker_config.keys()
+        or docker_config["registry-mirrors"]
+        != ["https://docker.mirrors.ustc.edu.cn/"]
+    ):
+        docker_config["registry-mirrors"] = [
+            "https://docker.mirrors.ustc.edu.cn/"
+        ]
     elif location != "CN" and "registry-mirrors" in docker_config.keys():
         del docker_config["registry-mirrors"]
     else:
         return
     if print_utils.ask_yes_no(
-            "install.change-docker-mirror",
-            location=location,
-            mirror_host=docker_mirror_host[location]
+        "install.change-docker-mirror",
+        location=location,
+        mirror_host=docker_mirror_host[location],
     ):
         with open("/etc/docker/daemon.json", "w") as docker_config_file:
-            json.dump(docker_config, docker_config_file, indent=4,
-                      sort_keys=True)
+            json.dump(
+                docker_config, docker_config_file, indent=4, sort_keys=True
+            )
         os_utils.restart_docker()
