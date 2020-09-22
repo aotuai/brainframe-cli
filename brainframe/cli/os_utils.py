@@ -77,6 +77,11 @@ def give_brainframe_group_rw_access(paths: List[Path]):
     run(["chmod", "-R", "g+rw"] + paths_str)
 
 
+def restart_docker():
+    print_utils.translate("general.restarting_docker")
+    run(["systemctl", "restart", "docker"])
+
+
 def _current_user():
     # If the SUDO_USER environment variable allows us to get the username of
     # the user running sudo instead of root. If they're not using sudo, we can

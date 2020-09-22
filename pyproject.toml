@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "brainframe-cli"
-version = "0.1.5"
+version = "0.1.6.dev1"
 license = "BSD-3-Clause"
 authors = ["Aotu <info@aotu.ai>"]
 
