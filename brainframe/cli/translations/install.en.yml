@@ -81,10 +81,3 @@ en:
   group? Doing so will allow the BrainFrame CLI to interact with Docker without
   root permissions."
   install-version: "BrainFrame:%{version} will be installed."
-  change-docker-mirror: "We have detected you are located in %{location}, do
-  you want to change docker mirror hosted by %{mirror_host} to speed up the
-  download process? Please be aware that this will overwrite you docker
-  daemon configuration and restart Docker service."
-  fail-to-load-docker-config: "Fail to load the Docker configuration file,
-  it's may caused by improper installation of Docker. Will keep using the
-  original docker mirror."

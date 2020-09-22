@@ -1,7 +1,5 @@
 from argparse import ArgumentParser
 from pathlib import Path
-import json
-from urllib.request import urlopen
 
 import i18n
 
@@ -105,13 +103,6 @@ def install():
     docker_compose.download(
         install_path / "docker-compose.yml", version=args.version
     )
-    location = check_location()
-    try:
-        docker_config = get_docker_config()
-    except Exception:
-        print_utils.warning_translate("install.fail-to-load-docker-config")
-    else:
-        update_docker_mirror(location=location, docker_config=docker_config)
 
     print_utils.translate("install.downloading-images")
     docker_compose.run(install_path, ["pull"])
@@ -197,45 +188,3 @@ def _parse_args():
     )
 
     return subcommand_parse_args(parser)
-
-
-def check_location() -> str:
-    url = "http://ipinfo.io/json"
-    try:
-        response = urlopen(url, timeout=5)
-    except Exception:
-        return "US"
-    data = json.load(response)
-    return data["country"]
-
-
-def get_docker_config() -> dict:
-    with open("/etc/docker/daemon.json") as docker_config_file:
-        docker_config = json.load(docker_config_file)
-        return docker_config
-
-
-def update_docker_mirror(docker_config: dict, location: str):
-    docker_mirror_host = {"CN": "USTC", "US": "Docker Hub"}
-    if location == "CN" and (
-        "registry-mirrors" not in docker_config.keys()
-        or docker_config["registry-mirrors"]
-        != ["https://docker.mirrors.ustc.edu.cn/"]
-    ):
-        docker_config["registry-mirrors"] = [
-            "https://docker.mirrors.ustc.edu.cn/"
-        ]
-    elif location != "CN" and "registry-mirrors" in docker_config.keys():
-        del docker_config["registry-mirrors"]
-    else:
-        return
-    if print_utils.ask_yes_no(
-        "install.change-docker-mirror",
-        location=location,
-        mirror_host=docker_mirror_host[location],
-    ):
-        with open("/etc/docker/daemon.json", "w") as docker_config_file:
-            json.dump(
-                docker_config, docker_config_file, indent=4, sort_keys=True
-            )
-        os_utils.restart_docker()
