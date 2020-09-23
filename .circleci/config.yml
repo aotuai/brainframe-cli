@@ -35,6 +35,7 @@ jobs:
 
     steps:
       - checkout
-      - run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3
+      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          | python3 - --version 1.1.0b2"
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
