@@ -22,8 +22,8 @@ jobs:
       - image: circleci/python:3.6
     steps:
       - checkout
-      - run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py \
-          | python3 - --version 1.1.0b2
+      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          | python3 - --version 1.1.0b2"
       - run: poetry install
       - run: black --check .
       - run: mypy -p "brainframe.cli"
