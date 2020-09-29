@@ -61,11 +61,7 @@ def _install_docker():
     os_utils.run(["sh", "/tmp/get-docker.sh"])
 
 
-docker = Dependency(
-    "docker",
-    "install.ask-install-docker",
-    _install_docker,
-)
+docker = Dependency("docker", "install.ask-install-docker", _install_docker,)
 
 docker_compose = Dependency(
     "docker-compose",
