@@ -2,6 +2,8 @@ import subprocess
 from pathlib import Path
 from typing import List
 import yaml
+import i18n
+import os
 
 from . import os_utils, print_utils, env_vars
 
@@ -25,6 +27,8 @@ def assert_installed(install_path: Path):
 
 
 def run(install_path: Path, commands: List[str]):
+    _assert_has_docker_permissions()
+
     compose_path = install_path / "docker-compose.yml"
 
     full_command = ["docker-compose", "--file", str(compose_path)]
@@ -43,6 +47,8 @@ def run(install_path: Path, commands: List[str]):
 
 
 def download(target: Path, version="latest"):
+    _assert_has_write_permissions(target)
+
     subdomain, auth_flags, version = check_download_version(version=version)
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
@@ -98,3 +104,45 @@ def check_existing_version(install_path: Path):
     version = compose["services"]["core"]["image"].split(":")[-1]
     version = "v" + version
     return version
+
+
+def _assert_has_docker_permissions():
+    """Fails if the user does not have permissions to interact with Docker"""
+    if not os_utils.is_root():
+        if not os_utils.currently_in_group("docker"):
+            error_message = (
+                i18n.t("general.docker-bad-permissions")
+                + "\n"
+                + _group_recommendation_message("docker")
+            )
+
+            print_utils.fail(error_message)
+
+
+def _assert_has_write_permissions(path: Path):
+    """Fails if the user does not have write access to the given path."""
+    if os.access(path, os.W_OK):
+        return
+
+    error_message = i18n.t("general.file-bad-write-permissions", path=path)
+
+    print()
+
+    if path.stat().st_gid == os_utils.BRAINFRAME_GROUP_ID:
+        error_message += _group_recommendation_message("brainframe")
+    else:
+        error_message += i18n.t(
+            "general.unexpected-group-for-file", path=path, group="brainframe"
+        )
+
+    print_utils.fail(error_message)
+
+
+def _group_recommendation_message(group: str):
+    if os_utils.added_to_group("brainframe"):
+        # The user is in the group, they just need to restart
+        return i18n.t("general.restart-for-group-access", group=group)
+    else:
+        # The user is not in the group, so they need to either add
+        # themselves or use sudo
+        return i18n.t("general.retry-with-sudo-or-group", group=group)
