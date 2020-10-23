@@ -47,7 +47,7 @@ def run(install_path: Path, commands: List[str]):
 
 
 def download(target: Path, version="latest"):
-    _assert_has_write_permissions(target)
+    _assert_has_write_permissions(target.parent)
 
     subdomain, auth_flags, version = check_download_version(version=version)
 
