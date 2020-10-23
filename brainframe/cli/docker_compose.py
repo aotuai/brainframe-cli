@@ -108,15 +108,14 @@ def check_existing_version(install_path: Path):
 
 def _assert_has_docker_permissions():
     """Fails if the user does not have permissions to interact with Docker"""
-    if not os_utils.is_root():
-        if not os_utils.currently_in_group("docker"):
-            error_message = (
-                i18n.t("general.docker-bad-permissions")
-                + "\n"
-                + _group_recommendation_message("docker")
-            )
+    if not (os_utils.is_root() or os_utils.currently_in_group("docker")):
+        error_message = (
+            i18n.t("general.docker-bad-permissions")
+            + "\n"
+            + _group_recommendation_message("docker")
+        )
 
-            print_utils.fail(error_message)
+        print_utils.fail(error_message)
 
 
 def _assert_has_write_permissions(path: Path):
