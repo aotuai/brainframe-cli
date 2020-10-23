@@ -129,9 +129,9 @@ def _assert_has_write_permissions(path: Path):
     print()
 
     if path.stat().st_gid == os_utils.BRAINFRAME_GROUP_ID:
-        error_message += _group_recommendation_message("brainframe")
+        error_message += " " + _group_recommendation_message("brainframe")
     else:
-        error_message += i18n.t(
+        error_message += " " + i18n.t(
             "general.unexpected-group-for-file", path=path, group="brainframe"
         )
 

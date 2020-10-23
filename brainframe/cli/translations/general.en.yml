@@ -22,7 +22,7 @@ en:
   group but you must restart to apply this change. Alternatively, you can try
   again with sudo."
   retry-with-sudo-or-group: "Please try again with sudo or consider adding your
-  user to the \"%{group_name}\" group."
+  user to the \"%{group}\" group."
   file-bad-write-permissions: "Your user does not have write access to
   \"%{path}\"."
   unexpected-group-for-file: "File \"%{path}\" is not part of the
