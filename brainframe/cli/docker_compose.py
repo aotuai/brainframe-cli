@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, cast, TextIO
 import yaml
 import i18n
 import os
@@ -95,7 +95,10 @@ def check_download_version(
             stdout=subprocess.PIPE,
             encoding="utf-8",
         )
-        version = result.stdout.readline().strip()
+        # stdout is a file-like object opened in text mode when the encoding
+        # argument is "utf-8"
+        stdout = cast(TextIO, result.stdout)
+        version = stdout.readline().strip()
 
     return subdomain, auth_flags, version
 
