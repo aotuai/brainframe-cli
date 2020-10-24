@@ -64,8 +64,9 @@ def download(target: Path, version: str = "latest") -> None:
         os_utils.give_brainframe_group_rw_access([target])
 
 
-def check_download_version(version: str = "latest") -> \
-        Tuple[str, List[str], str]:
+def check_download_version(
+    version: str = "latest",
+) -> Tuple[str, List[str], str]:
     subdomain = ""
     auth_flags = []
 
