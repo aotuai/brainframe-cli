@@ -6,7 +6,7 @@ from pathlib import Path
 from brainframe.cli.main import RELATIVE_TRANSLATIONS_PATH
 
 
-assert "brainframe" in os.getcwd(), \
+assert Path("brainframe").is_dir(), \
     "PyInstaller must be run from the root directory of the project"
 
 data_files = []
