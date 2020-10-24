@@ -44,3 +44,19 @@ using the ``compose`` command, which can be run from any directory.
 For more information, take a look at the `Getting Started guide`_.
 
 .. _`Getting Started guide`: https://aotu.ai/docs/getting_started/
+
+Contributing
+------------
+
+We happily take community contributions! If there's something you'd like to
+work on, but you're not sure how to start, feel free to create an issue on
+Github and we'll try to point you in the right direction.
+
+We use a couple formatting tools to keep our code style consistent. If you get
+any CI failures, you can run the following commands to automatically format
+your code to fit our guidelines:
+
+```bash
+poetry run isort .
+poetry run black .
+```

@@ -1,8 +1,8 @@
 import sys
 
 import i18n
-
 from brainframe.cli import docker_compose, env_vars, os_utils, print_utils
+
 from .utils import command
 
 

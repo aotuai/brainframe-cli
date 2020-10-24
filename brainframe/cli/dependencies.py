@@ -1,6 +1,6 @@
 import shutil
 
-from . import print_utils, os_utils
+from . import os_utils, print_utils
 
 
 class Dependency:
