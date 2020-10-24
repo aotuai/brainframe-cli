@@ -12,7 +12,7 @@ en:
   to a custom location, ensure that the %{install_env_var} environment variable
   has been set."
   mkdir-permission-denied: "Permission denied while making directory
-  %{directory}, trying with sudo."
+  %{directory}, trying as root."
   staging-missing-credentials: "The %{username_env_var} and %{password_env_var}
   variables must be set to access staging."
   user-not-root: "This command must be run as root!"
@@ -20,11 +20,11 @@ en:
   use Docker."
   restart-for-group-access: "Your user has been added to the \"%{group}\"
   group but you must restart to apply this change. Alternatively, you can try
-  again with sudo."
-  retry-with-sudo-or-group: "Please try again with sudo or consider adding your
+  again as root."
+  retry-as-root-or-group: "Please try again as root or consider adding your
   user to the \"%{group}\" group."
   file-bad-write-permissions: "Your user does not have write access to
   \"%{path}\"."
-  unexpected-group-for-file: "File \"%{path}\" is not part of the
+  unexpected-group-for-file: "File \"%{path}\" is not owned by the
   \"%{group}\" group, but probably should be. Please add this file to the group
-  or try again with sudo."
+  or try again as root."

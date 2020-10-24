@@ -1,6 +1,6 @@
 import subprocess
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 import yaml
 import i18n
 import os
@@ -16,7 +16,7 @@ BRAINFRAME_LATEST_TAG_URL = (
 )
 
 
-def assert_installed(install_path: Path):
+def assert_installed(install_path: Path) -> None:
     compose_path = install_path / "docker-compose.yml"
 
     if not compose_path.is_file():
@@ -26,7 +26,7 @@ def assert_installed(install_path: Path):
         )
 
 
-def run(install_path: Path, commands: List[str]):
+def run(install_path: Path, commands: List[str]) -> None:
     _assert_has_docker_permissions()
 
     compose_path = install_path / "docker-compose.yml"
@@ -46,7 +46,7 @@ def run(install_path: Path, commands: List[str]):
     os_utils.run(full_command + commands)
 
 
-def download(target: Path, version="latest"):
+def download(target: Path, version: str = "latest") -> None:
     _assert_has_write_permissions(target.parent)
 
     subdomain, auth_flags, version = check_download_version(version=version)
@@ -64,7 +64,8 @@ def download(target: Path, version="latest"):
         os_utils.give_brainframe_group_rw_access([target])
 
 
-def check_download_version(version="latest"):
+def check_download_version(version: str = "latest") -> \
+        Tuple[str, List[str], str]:
     subdomain = ""
     auth_flags = []
 
@@ -98,7 +99,7 @@ def check_download_version(version="latest"):
     return subdomain, auth_flags, version
 
 
-def check_existing_version(install_path: Path):
+def check_existing_version(install_path: Path) -> str:
     compose_path = install_path / "docker-compose.yml"
     compose = yaml.load(compose_path.read_text(), Loader=yaml.SafeLoader)
     version = compose["services"]["core"]["image"].split(":")[-1]
@@ -106,7 +107,7 @@ def check_existing_version(install_path: Path):
     return version
 
 
-def _assert_has_docker_permissions():
+def _assert_has_docker_permissions() -> None:
     """Fails if the user does not have permissions to interact with Docker"""
     if not (os_utils.is_root() or os_utils.currently_in_group("docker")):
         error_message = (
@@ -118,14 +119,13 @@ def _assert_has_docker_permissions():
         print_utils.fail(error_message)
 
 
-def _assert_has_write_permissions(path: Path):
+def _assert_has_write_permissions(path: Path) -> None:
     """Fails if the user does not have write access to the given path."""
     if os.access(path, os.W_OK):
         return
 
     error_message = i18n.t("general.file-bad-write-permissions", path=path)
-
-    print()
+    error_message += "\n"
 
     if path.stat().st_gid == os_utils.BRAINFRAME_GROUP_ID:
         error_message += " " + _group_recommendation_message("brainframe")
@@ -137,11 +137,11 @@ def _assert_has_write_permissions(path: Path):
     print_utils.fail(error_message)
 
 
-def _group_recommendation_message(group: str):
+def _group_recommendation_message(group: str) -> str:
     if os_utils.added_to_group("brainframe"):
         # The user is in the group, they just need to restart
         return i18n.t("general.restart-for-group-access", group=group)
     else:
         # The user is not in the group, so they need to either add
         # themselves or use sudo
-        return i18n.t("general.retry-with-sudo-or-group", group=group)
+        return i18n.t("general.retry-as-root-or-group", group=group)
