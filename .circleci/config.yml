@@ -44,6 +44,8 @@ jobs:
       - image: centos:6
     steps:
       - checkout
+      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+                | python3 - --version 1.1.0"
       - run: poetry install --no-root
       - run: pyinstaller deployment/main.spec
       - store_artifacts:
