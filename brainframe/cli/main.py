@@ -2,6 +2,7 @@ import os
 import signal
 import sys
 from argparse import ArgumentParser
+from pathlib import Path
 
 import i18n
 
@@ -14,7 +15,8 @@ from brainframe.cli import (
 
 
 def main():
-    i18n.load_path.append(_TRANSLATIONS_PATH)
+    translations_path = _absolute_translations_path()
+    i18n.load_path.append(str(translations_path))
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")
@@ -54,7 +56,17 @@ def main():
         parser.print_help()
 
 
-_TRANSLATIONS_PATH = os.path.join(os.path.dirname(__file__), "translations")
+RELATIVE_TRANSLATIONS_PATH = Path("brainframe/cli/translations")
+
+
+def _absolute_translations_path() -> Path:
+    if hasattr(sys, "_MEIPASS"):
+        # Running from PyInstaller
+        return Path(sys._MEIPASS, RELATIVE_TRANSLATIONS_PATH)
+    else:
+        # Running from source
+        return Path(os.path.dirname(__file__), "translations")
+
 
 if __name__ == "__main__":
     main()
