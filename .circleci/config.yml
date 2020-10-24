@@ -45,6 +45,9 @@ jobs:
       # Building on here allows us to link to a very old version of libc,
       # which will work on all more modern distributions.
       - image: centos:7
+    environment:
+      # get-poetry.py doesn't seem to do this properly on CentOS 7
+      PATH: "$PATH:/root/.poetry/bin"
     steps:
       - checkout
       - run: yum -y install python3
