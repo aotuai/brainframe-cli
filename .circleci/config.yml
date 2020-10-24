@@ -41,9 +41,14 @@ jobs:
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
   pyinstaller:
     docker:
-      - image: centos:6
+      # CentOS 7 is the oldest Linux distribution we unofficially support.
+      # Building on here allows us to link to a very old version of libc,
+      # which will work on all more modern distributions.
+      - image: centos:7
     steps:
       - checkout
+      - yum -y install https://centos7.iuscommunity.org/ius-release.rpm && yum -y update
+      - yum -y install python36u
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
                 | python3 - --version 1.1.0"
       - run: poetry install --no-root
