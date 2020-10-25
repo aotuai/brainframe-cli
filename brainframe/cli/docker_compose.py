@@ -1,9 +1,10 @@
+import os
 import subprocess
 from pathlib import Path
-from typing import List, Tuple, cast, TextIO
-import yaml
+from typing import List, TextIO, Tuple, cast
+
 import i18n
-import os
+import yaml
 
 from . import env_vars, os_utils, print_utils
 
