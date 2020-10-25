@@ -56,7 +56,8 @@ We use a couple formatting tools to keep our code style consistent. If you get
 any CI failures, you can run the following commands to automatically format
 your code to fit our guidelines:
 
-```bash
-poetry run isort .
-poetry run black .
-```
+.. code-block:: bash
+
+    poetry run isort .
+    poetry run black .
+
