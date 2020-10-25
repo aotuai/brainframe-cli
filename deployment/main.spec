@@ -9,6 +9,7 @@ from brainframe.cli.main import RELATIVE_TRANSLATIONS_PATH
 assert Path("brainframe").is_dir(), \
     "PyInstaller must be run from the root directory of the project"
 
+# Package translation files in with the executable
 data_files = []
 for file_ in RELATIVE_TRANSLATIONS_PATH.glob("*.yml"):
     data_files.append((str(file_.absolute()), str(file_.parent)))
