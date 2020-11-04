@@ -4,13 +4,7 @@ import sys
 from argparse import ArgumentParser
 
 import i18n
-
-from brainframe.cli import (
-    print_utils,
-    commands,
-    env_vars,
-    os_utils,
-)
+from brainframe.cli import commands, env_vars, os_utils, print_utils
 
 
 def main():

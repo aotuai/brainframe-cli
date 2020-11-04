@@ -1,8 +1,8 @@
+import os
+import readline
 import sys
 from enum import Enum
 from pathlib import Path
-import os
-import readline
 
 import i18n
 

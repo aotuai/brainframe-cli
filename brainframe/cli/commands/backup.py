@@ -4,15 +4,15 @@ from datetime import datetime
 from pathlib import Path
 
 import i18n
-
 from brainframe.cli import (
-    print_utils,
-    docker_compose,
-    os_utils,
     dependencies,
+    docker_compose,
     env_vars,
+    os_utils,
+    print_utils,
 )
-from .utils import subcommand_parse_args, command
+
+from .utils import command, subcommand_parse_args
 
 BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 

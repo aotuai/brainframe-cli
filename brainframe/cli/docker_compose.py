@@ -1,11 +1,12 @@
+import os
 import subprocess
 from pathlib import Path
-from typing import List, Tuple, cast, TextIO
-import yaml
-import i18n
-import os
+from typing import List, TextIO, Tuple, cast
 
-from . import os_utils, print_utils, env_vars
+import i18n
+import yaml
+
+from . import env_vars, os_utils, print_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"

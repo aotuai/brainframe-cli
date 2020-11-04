@@ -1,10 +1,10 @@
 from argparse import ArgumentParser
-from packaging import version
 
 import i18n
+from brainframe.cli import docker_compose, env_vars, print_utils
+from packaging import version
 
-from brainframe.cli import print_utils, docker_compose, env_vars
-from .utils import subcommand_parse_args, command
+from .utils import command, subcommand_parse_args
 
 
 @command("update")
