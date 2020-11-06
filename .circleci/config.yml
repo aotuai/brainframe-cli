@@ -46,6 +46,7 @@ jobs:
   test_installation:
     docker:
       - image: circleci/python:3.6
+    steps:
       - checkout
       - run: poetry install --no-root
       - run: poetry brainframe install --noninteractive
