@@ -49,4 +49,4 @@ jobs:
     steps:
       - checkout
       - run: poetry install --no-root
-      - run: poetry brainframe install --noninteractive
+      - run: poetry run brainframe install --noninteractive
