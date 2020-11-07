@@ -54,6 +54,6 @@ jobs:
           | python3 - --version 1.1.0"
       - run: source $HOME/.poetry/env
       - run: echo $HOME
-      - run: $HOME/.poetry/bin/poetry install --no-root
+      - run: sudo $HOME/.poetry/bin/poetry install
       - run: sudo $HOME/.poetry/bin/poetry show
       - run: sudo $HOME/.poetry/bin/poetry run brainframe install --noninteractive
