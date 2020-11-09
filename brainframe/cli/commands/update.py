@@ -1,10 +1,11 @@
 from argparse import ArgumentParser
-from packaging import version
 
 import i18n
+from packaging import version
 
-from brainframe.cli import print_utils, docker_compose, env_vars
-from .utils import subcommand_parse_args, command
+from brainframe.cli import docker_compose, env_vars, print_utils
+
+from .utils import command, subcommand_parse_args
 
 
 @command("update")
@@ -15,7 +16,7 @@ def update():
 
     docker_compose.assert_installed(install_path)
 
-    _, _, upgrade_version = docker_compose.check_download_version()
+    upgrade_version = docker_compose.get_latest_version()
     existing_version = docker_compose.check_existing_version(install_path)
     if version.parse(existing_version) >= version.parse(upgrade_version):
         if not args.downgrade:

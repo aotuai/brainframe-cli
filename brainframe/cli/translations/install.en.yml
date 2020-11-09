@@ -25,8 +25,6 @@ en:
   install-docker-compose-help: "If provided, Docker Compose will be
   automatically installed if it is not present. This is only available for
   supported operating systems."
-  install-curl-help: "If provided, curl will be automatically installed if not
-  present. This is only available for supported operating systems."
   add-to-group-help: "If provided, the current user will be added to the
   \"brainframe\" group"
   add-to-docker-group-help: "If provided, the current user will be added to the
@@ -67,8 +65,6 @@ en:
   {error}"
   ask-install-docker-compose: "This script can attempt to install Docker
   Compose for you using pip. Would you like to do this?"
-  ask-install-curl: "This script can install curl for you through apt. Would
-  you like to do this?"
   ask-docker-compose-path: "Where should Docker Compose be installed to?"
   get-docker-compose-failed: "Failed to download Docker Compose: {error}"
   unsupported-os: "Warning: You are using an unsupported operating system.

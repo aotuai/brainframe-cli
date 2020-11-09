@@ -1,6 +1,9 @@
 import shutil
+from tempfile import NamedTemporaryFile
 
-from . import print_utils, os_utils
+import requests
+
+from . import os_utils, print_utils
 
 
 class Dependency:
@@ -55,10 +58,12 @@ class Dependency:
 
 
 def _install_docker():
-    os_utils.run(
-        ["curl", "-fsSL", "https://get.docker.com", "-o", "/tmp/get-docker.sh"]
-    )
-    os_utils.run(["sh", "/tmp/get-docker.sh"])
+    response = requests.get("https://get.docker.com")
+
+    with NamedTemporaryFile("w") as get_docker_script:
+        get_docker_script.write(response.text)
+        get_docker_script.flush()
+        os_utils.run(["sh", get_docker_script.name])
 
 
 docker = Dependency("docker", "install.ask-install-docker", _install_docker,)
@@ -84,10 +89,4 @@ rsync = Dependency(
     "rsync",
     "install.ask-install-rsync",
     lambda: os_utils.run(["apt-get", "install", "-y", "rsync"]),
-)
-
-curl = Dependency(
-    "curl",
-    "install.ask-install-curl",
-    lambda: os_utils.run(["apt-get", "install", "-y", "curl"]),
 )

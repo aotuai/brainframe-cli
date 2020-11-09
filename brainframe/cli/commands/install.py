@@ -4,13 +4,14 @@ from pathlib import Path
 import i18n
 
 from brainframe.cli import (
-    print_utils,
+    dependencies,
     docker_compose,
     env_vars,
     os_utils,
-    dependencies,
+    print_utils,
 )
-from .utils import subcommand_parse_args, command
+
+from .utils import command, subcommand_parse_args
 
 
 @command("install")
@@ -30,13 +31,12 @@ def install():
         print()
 
     # Check all dependencies
-    dependencies.curl.ensure(args.noninteractive, args.install_curl)
     dependencies.docker.ensure(args.noninteractive, args.install_docker)
     dependencies.docker_compose.ensure(
         args.noninteractive, args.install_docker_compose
     )
 
-    _, _, download_version = docker_compose.check_download_version()
+    download_version = docker_compose.get_latest_version()
     print_utils.translate("install.install-version", version=download_version)
 
     if not os_utils.added_to_group("docker"):
@@ -164,11 +164,6 @@ def _parse_args():
         "--install-docker-compose",
         action="store_true",
         help=i18n.t("install.install-docker-compose-help"),
-    )
-    parser.add_argument(
-        "--install-curl",
-        action="store_true",
-        help=i18n.t("install.install-curl-help"),
     )
     parser.add_argument(
         "--add-to-group",

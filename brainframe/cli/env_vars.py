@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Optional, Generic, TypeVar, Callable, Union, Type
+from typing import Callable, Generic, Optional, Type, TypeVar, Union
 
 T = TypeVar("T")
 """The type of a configuration value"""

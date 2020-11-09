@@ -2,8 +2,9 @@ from argparse import ArgumentParser
 
 import i18n
 
-from brainframe.cli import env_vars, print_utils, docker_compose
-from .utils import subcommand_parse_args, command
+from brainframe.cli import docker_compose, env_vars, print_utils
+
+from .utils import command, subcommand_parse_args
 
 
 @command("info")

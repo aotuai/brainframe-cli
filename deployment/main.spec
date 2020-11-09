@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from brainframe.cli.main import RELATIVE_TRANSLATIONS_PATH
+from brainframe.cli.frozen_utils import RELATIVE_TRANSLATIONS_PATH
 
 
 assert Path("brainframe").is_dir(), \

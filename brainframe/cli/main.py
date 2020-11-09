@@ -7,16 +7,16 @@ from pathlib import Path
 import i18n
 
 from brainframe.cli import (
-    print_utils,
     commands,
     env_vars,
+    frozen_utils,
     os_utils,
+    print_utils,
 )
 
 
 def main():
-    translations_path = _absolute_translations_path()
-    i18n.load_path.append(str(translations_path))
+    i18n.load_path.append(str(frozen_utils.translations_path()))
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")
@@ -54,18 +54,6 @@ def main():
             error_message, color=print_utils.Color.RED, file=sys.stderr
         )
         parser.print_help()
-
-
-RELATIVE_TRANSLATIONS_PATH = Path("brainframe/cli/translations")
-
-
-def _absolute_translations_path() -> Path:
-    if hasattr(sys, "_MEIPASS"):
-        # Running from PyInstaller
-        return Path(sys._MEIPASS, RELATIVE_TRANSLATIONS_PATH)
-    else:
-        # Running from source
-        return Path(os.path.dirname(__file__), "translations")
 
 
 if __name__ == "__main__":

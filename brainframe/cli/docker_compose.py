@@ -1,11 +1,12 @@
-import subprocess
-from pathlib import Path
-from typing import List, Tuple, cast, TextIO
-import yaml
-import i18n
 import os
+from pathlib import Path
+from typing import List, Tuple
 
-from . import os_utils, print_utils, env_vars
+import i18n
+import requests
+import yaml
+
+from . import env_vars, os_utils, print_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
@@ -49,14 +50,23 @@ def run(install_path: Path, commands: List[str]) -> None:
 def download(target: Path, version: str = "latest") -> None:
     _assert_has_write_permissions(target.parent)
 
-    subdomain, auth_flags, version = check_download_version(version=version)
+    if version == "latest":
+        version = get_latest_version()
+    credentials = _get_staging_credentials()
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
-        subdomain=subdomain, version=version
+        subdomain="staging." if env_vars.is_staging.is_set() else "",
+        version=version,
     )
-    os_utils.run(
-        ["curl", "-o", str(target), "--fail", "--location", url] + auth_flags,
-    )
+    response = requests.get(url, auth=credentials, stream=True)
+    if not response.ok:
+        print_utils.fail_translate(
+            "general.error-downloading-docker-compose",
+            status_code=response.status_code,
+            error_message=response.text,
+        )
+
+    target.write_text(response.text)
 
     if os_utils.is_root():
         # Fix the permissions of the docker-compose.yml so that the BrainFrame
@@ -64,43 +74,23 @@ def download(target: Path, version: str = "latest") -> None:
         os_utils.give_brainframe_group_rw_access([target])
 
 
-def check_download_version(
-    version: str = "latest",
-) -> Tuple[str, List[str], str]:
-    subdomain = ""
-    auth_flags = []
-
+def get_latest_version() -> str:
+    """
+    :return: The latest available version in the format "vX.Y.Z"
+    """
     # Add the flags to authenticate with staging if the user wants to download
     # from there
     if env_vars.is_staging.is_set():
         subdomain = "staging."
+        credentials = _get_staging_credentials()
+    else:
+        subdomain = ""
+        credentials = None
 
-        username = env_vars.staging_username.get()
-        password = env_vars.staging_password.get()
-        if username is None or password is None:
-            print_utils.fail_translate(
-                "general.staging-missing-credentials",
-                username_env_var=env_vars.staging_username.name,
-                password_env_var=env_vars.staging_password.name,
-            )
-
-        auth_flags = ["--user", f"{username}:{password}"]
-
-    if version == "latest":
-        # Check what the latest version is
-        url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
-        result = os_utils.run(
-            ["curl", "--fail", "-s", "--location", url] + auth_flags,
-            print_command=False,
-            stdout=subprocess.PIPE,
-            encoding="utf-8",
-        )
-        # stdout is a file-like object opened in text mode when the encoding
-        # argument is "utf-8"
-        stdout = cast(TextIO, result.stdout)
-        version = stdout.readline().strip()
-
-    return subdomain, auth_flags, version
+    # Check what the latest version is
+    url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
+    response = requests.get(url, auth=credentials)
+    return response.text
 
 
 def check_existing_version(install_path: Path) -> str:
@@ -149,3 +139,16 @@ def _group_recommendation_message(group: str) -> str:
         # The user is not in the group, so they need to either add
         # themselves or use sudo
         return i18n.t("general.retry-as-root-or-group", group=group)
+
+
+def _get_staging_credentials() -> Tuple[str, str]:
+    username = env_vars.staging_username.get()
+    password = env_vars.staging_password.get()
+    if username is None or password is None:
+        print_utils.fail_translate(
+            "general.staging-missing-credentials",
+            username_env_var=env_vars.staging_username.name,
+            password_env_var=env_vars.staging_password.name,
+        )
+
+    return username, password
