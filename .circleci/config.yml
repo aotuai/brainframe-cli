@@ -52,9 +52,9 @@ jobs:
       - checkout
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
           | python3 - --version 1.1.0"
-      - run: source $HOME/.poetry/env
+      - run: export PATH=$PATH:$HOME/.poetry/bin
       - run: poetry install
-      - run: sudo $HOME/.poetry/bin/poetry run brainframe install --noninteractive
+      - run: sudo $(which poetry) run brainframe install --noninteractive
       - run: sudo $(which poetry) run brainframe compose up -d
       - run: docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core")
       - run: curl -f http://localhost/api/version
