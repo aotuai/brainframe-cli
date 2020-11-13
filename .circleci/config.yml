@@ -59,21 +59,15 @@ jobs:
       - run:
           name: Check BrainFrame containers are running
           command: |
-            for i in {1..5}; do
-              if docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core"); then
-                exit 0;
-              fi
-              sleep 1
-            done
-            exit 1
+            until [ docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core") ]; do
+                sleep 0.1;
+            done;
+          no_output_timeout: 1m
       - run:
           name: Check BrainFrame core service is up
           command: |
-            for i in {1..5}; do
-              if curl -f http://localhost/api/version; then
-                exit 0;
-              fi
-              sleep 1
-            done
-            exit 1
+            until [ curl -f http://localhost/api/version ]; do
+              sleep 0.1;
+            done;
+          no_output_timeout: 1m
       - run: sudo $(which poetry) run brainframe compose down
