@@ -59,7 +59,7 @@ jobs:
       - run:
           name: Check BrainFrame containers are running
           command: |
-            for i in `seq 1 5`; do
+            for i in {1..5}; do
               if docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core"); then
                 exit 0;
               fi
@@ -69,7 +69,7 @@ jobs:
       - run:
           name: Check BrainFrame core service is up
           command: |
-            for i in `seq 1 5`; do
+            for i in {1..5}; do
               if curl -f http://localhost/api/version; then
                 exit 0;
               fi
