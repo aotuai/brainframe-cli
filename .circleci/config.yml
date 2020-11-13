@@ -14,7 +14,7 @@ workflows:
             # Run only when a tag is created
             tags:
               only: /^v.+\..+\..+/
-  test:
+  tests:
     jobs:
       - test_installation
 
