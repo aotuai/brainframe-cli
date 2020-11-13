@@ -55,7 +55,6 @@ jobs:
       - run: echo "export PATH=$PATH:$HOME/.poetry/bin" >> $BASH_ENV
       - run: sudo $(which poetry) install
       - run: sudo $(which poetry) run brainframe install --noninteractive
-      - run: sudo $(which poetry) run brainframe compose up -d
       - run:
           name: Check BrainFrame containers are running
           command: |
