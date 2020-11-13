@@ -56,5 +56,5 @@ jobs:
       - run: sudo $(which poetry) install
       - run: sudo $(which poetry) run brainframe install --noninteractive
       # - run: sudo $(which poetry) run brainframe compose up -d
-      - run: docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core")
+      # - run: docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core")
       - run: for i in `seq 1 5`; do if curl -f http://localhost/api/version; then exit 0; fi; sleep 1; done; exit 1
