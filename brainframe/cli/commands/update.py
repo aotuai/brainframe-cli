@@ -86,7 +86,7 @@ def _parse_args():
     )
 
     parser.add_argument(
-        "--force", action="store_true", help=i18n.t("update.downgrade-help"),
+        "--force", action="store_true", help=i18n.t("update.force-help"),
     )
 
     return subcommand_parse_args(parser)

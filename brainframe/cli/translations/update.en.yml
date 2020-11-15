@@ -6,7 +6,7 @@ en:
   supported, and may result in instability or data loss."
   restart-help: "If provided, the server will restart after the update is
   complete"
-  downgrade-help: "If provided, the BrainFrame server will download the
+  force-help: "If provided, the BrainFrame server will download the
   specified version, even if it is not newer than the current version."
   ask-restart: "Would you like to restart the BrainFrame server to apply the
   update?"
