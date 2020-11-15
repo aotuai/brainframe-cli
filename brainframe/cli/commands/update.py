@@ -16,36 +16,38 @@ def update():
     docker_compose.assert_installed(install_path)
 
     if args.version == "latest":
-        _, _, requested_version = docker_compose.check_download_version()
+        _, _, requested_version_str = docker_compose.check_download_version()
     else:
-        requested_version = args.version
+        requested_version_str = args.version
 
-    existing_version = docker_compose.check_existing_version(install_path)
+    existing_version_str = docker_compose.check_existing_version(install_path)
+
+    existing_version = version.parse(existing_version_str)
+    requested_version = version.parse(requested_version_str)
+
     if not args.force:
-        if version.parse(existing_version) == version.parse(requested_version):
+        if existing_version == requested_version:
             print_utils.fail_translate(
                 "update.version-already-installed",
-                existing_version=existing_version,
-                requested_version=requested_version,
+                existing_version=existing_version_str,
+                requested_version=requested_version_str,
             )
-        elif version.parse(existing_version) > version.parse(
-            requested_version
-        ):
+        elif existing_version > requested_version:
             print_utils.fail_translate(
                 "update.downgrade-not-allowed",
-                existing_version=existing_version,
-                requested_version=requested_version,
+                existing_version=existing_version_str,
+                requested_version=requested_version_str,
             )
 
     print_utils.translate(
         "update.upgrade-version",
-        existing_version=existing_version,
-        requested_version=requested_version,
+        existing_version=existing_version_str,
+        requested_version=requested_version_str,
     )
 
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
-    docker_compose.download(docker_compose_path, version=requested_version)
+    docker_compose.download(docker_compose_path, version=requested_version_str)
 
     docker_compose.run(install_path, ["pull"])
 
