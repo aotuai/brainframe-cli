@@ -15,25 +15,37 @@ def update():
 
     docker_compose.assert_installed(install_path)
 
-    _, _, upgrade_version = docker_compose.check_download_version()
+    if args.version == "latest":
+        _, _, requested_version = docker_compose.check_download_version()
+    else:
+        requested_version = args.version
+
     existing_version = docker_compose.check_existing_version(install_path)
-    if version.parse(existing_version) >= version.parse(upgrade_version):
-        if not args.downgrade:
+    if not args.force:
+        if version.parse(existing_version) == version.parse(requested_version):
             print_utils.fail_translate(
-                "update.version-failing",
+                "update.version-already-installed",
                 existing_version=existing_version,
-                upgrade_version=upgrade_version,
+                requested_version=requested_version,
+            )
+        elif version.parse(existing_version) > version.parse(
+            requested_version
+        ):
+            print_utils.fail_translate(
+                "update.downgrade-not-allowed",
+                existing_version=existing_version,
+                requested_version=requested_version,
             )
 
     print_utils.translate(
         "update.upgrade-version",
         existing_version=existing_version,
-        upgrade_version=upgrade_version,
+        requested_version=requested_version,
     )
 
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
-    docker_compose.download(docker_compose_path, version=args.version)
+    docker_compose.download(docker_compose_path, version=requested_version)
 
     docker_compose.run(install_path, ["pull"])
 
@@ -72,9 +84,7 @@ def _parse_args():
     )
 
     parser.add_argument(
-        "--downgrade",
-        action="store_true",
-        help=i18n.t("update.downgrade-help"),
+        "--force", action="store_true", help=i18n.t("update.downgrade-help"),
     )
 
     return subcommand_parse_args(parser)

@@ -6,14 +6,17 @@ en:
   supported, and may result in instability or data loss."
   restart-help: "If provided, the server will restart after the update is
   complete"
-  downgrade-help: "If provided, BrainFrame server will be forced to downgrade."
+  downgrade-help: "If provided, the BrainFrame server will download the
+  specified version, even if it is not newer than the current version."
   ask-restart: "Would you like to restart the BrainFrame server to apply the
   update?"
   complete: "BrainFrame has been updated!"
   upgrade-version: "BrainFrame:%{existing_version} detected under your installation
-  location, we will replace it with BrainFrame:%{upgrade_version}"
-  version-failing: "You have BrainFrame:%{existing_version} installed already.
-  The latest version we found on updating server is
-  BrainFrame:%{upgrade_version}. We don't recommend downgrading BrainFrame
-  for data integrity reasons. This request will be ignored. But you can force to
-  downgrade by appending --downgrade flag."
+  location, we will replace it with BrainFrame:%{requested_version}"
+  version-already-installed: "BrainFrame:%{existing_version} is already
+  installed. This request will be ignored. You can force this release to be
+  re-downloaded using the --force flag."
+  downgrade-not-allowed: "BrainFrame:%{requested_version} is an earlier release
+  than the currently installed version, BrainFrame:%{existing_version}. We
+  don't recommend downgrading BrainFrame for data integrity reasons. This
+  request will be ignored. You can force a downgrade using the --force flag."
