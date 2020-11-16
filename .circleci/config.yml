@@ -1,5 +1,10 @@
 version: 2.1
 
+parameters:
+  poetry_version:
+    type: string
+    default: "1.1.4"
+
 workflows:
   lint:
     jobs:
@@ -14,6 +19,9 @@ workflows:
             # Run only when a tag is created
             tags:
               only: /^v.+\..+\..+/
+  tests:
+    jobs:
+      - test_installation
 
 
 jobs:
@@ -23,7 +31,7 @@ jobs:
     steps:
       - checkout
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version 1.1.0"
+          | python3 - --version << pipeline.parameters.poetry_version >>"
       - run: poetry install --no-root
       - run: poetry run isort --check .
       - run: poetry run black --check .
@@ -37,6 +45,36 @@ jobs:
     steps:
       - checkout
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version 1.1.0"
+          | python3 - --version << pipeline.parameters.poetry_version >>"
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
+  test_installation:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install python3 python3-dev curl git -y
+      - checkout
+      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          | python3 - --version << pipeline.parameters.poetry_version >>"
+      - run: echo "export PATH=$PATH:$HOME/.poetry/bin" >> $BASH_ENV
+      - run: sudo $(which poetry) install
+      - run: sudo $(which poetry) run brainframe install --noninteractive
+      - run: sudo $(which poetry) run brainframe compose up -d
+      - run:
+          name: Check BrainFrame containers are running
+          command: |
+            until docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core") >/dev/null 2>/dev/null; do
+                sleep 0.1;
+            done;
+            echo "BrainFrame core container is running."
+          no_output_timeout: 1m
+      - run:
+          name: Check BrainFrame core service is up
+          command: |
+            until curl -f http://localhost/api/version >/dev/null 2>/dev/null; do
+              sleep 0.1;
+            done;
+            echo "BrainFrame core service is up."
+          no_output_timeout: 1m
+      - run: sudo $(which poetry) run brainframe compose down
