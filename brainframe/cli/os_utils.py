@@ -113,7 +113,7 @@ def run(
 
 
 _SUPPORTED_DISTROS = {
-    "Ubuntu": ["18.04"],
+    "Ubuntu": ["18.04", "20.04"],
 }
 """A dict whose keys are supported Linux distribution names and whose values
 are all supported versions for that distribution.
