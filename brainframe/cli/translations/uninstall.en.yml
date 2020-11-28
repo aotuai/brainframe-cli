@@ -1,0 +1,20 @@
+en:
+  description: "Uninstalls the BrainFrame server, removes any artifacts it
+  created, and reverses any system configuration made by the \"install\"
+  command. This command does not uninstall the BrainFrame CLI itself."
+  usage: "brainframe uninstall [<args>]"
+
+  warning: "WARNING: This command will uninstall the BrainFrame server,
+  permanently delete all data the server has produced including backups, and
+  delete the server's Docker images! The following directories will be
+  deleted: %{directories}"
+  ask-confirm: "Would you like to continue?"
+  abort: "Uninstallation has been cancelled. No data has been lost."
+  group-already-deleted: "The \"brainframe\" group does not exist. Skipping
+  group deletion."
+  delete-group-failure: "Failed to delete the \"brainframe\" group: %{error}"
+  deleting-images: "Bringing down the BrainFrame server and deleting images..."
+  deleting-install-path: "Deleting the install path..."
+  deleting-data-path: "Deleting the data path..."
+  deleting-group: "Deleting the \"brainframe\" group..."
+  complete: "The BrainFrame server has been uninstalled."

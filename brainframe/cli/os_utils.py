@@ -20,17 +20,28 @@ current_command = None
 
 def create_group(group_name: str, group_id: int):
     # Check if the group exists
-    result = run(["getent", "group", group_name], exit_on_failure=False)
-    if result.returncode == 0:
+    if _group_exists(group_name):
         print_utils.translate("install.group-exists")
         return
 
     # Create the group
     result = run(["groupadd", group_name, "--gid", str(group_id)])
     if result.returncode != 0:
-        message = i18n.t("install.create-group-failure")
-        message = message.format(error=str(result.stderr))
-        print_utils.fail(message)
+        print_utils.fail_translate(
+            "install.create-group-failure", error=str(result.stderr)
+        )
+
+
+def delete_group(group_name: str) -> None:
+    if not _group_exists(group_name):
+        print_utils.translate("uninstall.group-already-deleted")
+        return
+
+    result = run(["groupdel", group_name])
+    if result.returncode != 0:
+        print_utils.fail_translate(
+            "uninstall.delete-group-failure", error=str(result.stderr)
+        )
 
 
 def added_to_group(group_name):
@@ -113,7 +124,7 @@ def run(
 
 
 _SUPPORTED_DISTROS = {
-    "Ubuntu": ["18.04"],
+    "Ubuntu": ["18.04", "20.04"],
 }
 """A dict whose keys are supported Linux distribution names and whose values
 are all supported versions for that distribution.
@@ -127,3 +138,8 @@ def is_supported() -> bool:
     name, version, _ = distro.linux_distribution()
 
     return name in _SUPPORTED_DISTROS and version in _SUPPORTED_DISTROS[name]
+
+
+def _group_exists(group_name: str) -> bool:
+    result = run(["getent", "group", group_name], exit_on_failure=False)
+    return result.returncode == 0
