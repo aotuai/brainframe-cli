@@ -109,4 +109,4 @@ jobs:
       - attach_workspace:
           at: /workspace
       - run: aws s3 cp /workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
-      - run: aws cloudfront create-invalidation "$STAGING_CLOUDFRONT_DISTRIBUTION"
+      - run: aws cloudfront create-invalidation --distribution-id "$STAGING_CLOUDFRONT_DISTRIBUTION"
