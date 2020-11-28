@@ -20,7 +20,10 @@ workflows:
             tags:
               only: /^v.+\..+\..+/
       - build_binary
-      - upload_binary
+      - upload_binary:
+          context: aws
+          requires:
+            - build_binary
   tests:
     jobs:
       - test_installation
@@ -102,7 +105,7 @@ jobs:
     docker:
       - image: amazon/aws-cli:2.0.14
     steps:
-      - run: yum -y install tar
+      - run: yum -y install tar gzip
       - attach_workspace:
           at: /workspace
       - run: aws s3 cp /workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
