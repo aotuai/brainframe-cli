@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 
 import i18n
-
 from brainframe.cli import (
     dependencies,
     docker_compose,

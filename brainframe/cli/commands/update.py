@@ -1,9 +1,8 @@
 from argparse import ArgumentParser
 
 import i18n
-from packaging import version
-
 from brainframe.cli import docker_compose, env_vars, print_utils
+from packaging import version
 
 from .utils import command, subcommand_parse_args
 
@@ -16,20 +15,35 @@ def update():
 
     docker_compose.assert_installed(install_path)
 
-    upgrade_version = docker_compose.get_latest_version()
-    existing_version = docker_compose.check_existing_version(install_path)
-    if version.parse(existing_version) >= version.parse(upgrade_version):
-        if not args.downgrade:
+    if args.version == "latest":
+        _, _, requested_version_str = docker_compose.check_existing_version(
+            install_path
+        )
+    else:
+        requested_version_str = args.version
+    requested_version = version.parse(requested_version_str)
+
+    existing_version_str = docker_compose.check_existing_version(install_path)
+    existing_version = version.parse(existing_version_str)
+
+    if not args.force:
+        if existing_version > requested_version:
             print_utils.fail_translate(
-                "update.version-failing",
-                existing_version=existing_version,
-                upgrade_version=upgrade_version,
+                "update.downgrade-not-allowed",
+                existing_version=existing_version_str,
+                upgrade_version=requested_version_str,
+            )
+        elif existing_version == requested_version:
+            print_utils.fail_translate(
+                "update.version-already-installed",
+                existing_version=existing_version_str,
+                upgrade_version=requested_version_str,
             )
 
     print_utils.translate(
         "update.upgrade-version",
-        existing_version=existing_version,
-        upgrade_version=upgrade_version,
+        existing_version=existing_version_str,
+        requested_version=requested_version_str,
     )
 
     print_utils.translate("general.downloading-docker-compose")
@@ -73,9 +87,7 @@ def _parse_args():
     )
 
     parser.add_argument(
-        "--downgrade",
-        action="store_true",
-        help=i18n.t("update.downgrade-help"),
+        "--force", action="store_true", help=i18n.t("update.force-help"),
     )
 
     return subcommand_parse_args(parser)

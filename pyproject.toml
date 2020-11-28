@@ -16,7 +16,7 @@ packages = [
 include = ["brainframe/cli/translations/*"]
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.6,<4.0"
 python-i18n = "^0.3"
 pyyaml = "^5.3"
 distro = "^1.5"
@@ -27,9 +27,15 @@ requests = "^2.24.0"
 black = "^19.10b0"
 mypy = "*"
 pyinstaller = "^4.0"
+isort = "^5.6"
 
 [tool.poetry.scripts]
 brainframe = "brainframe.cli.main:main"
 
 [tool.black]
 line-length = 79
+
+[tool.isort]
+profile = "black"
+src_paths = ["brainframe/cli"]
+line_length = 79
