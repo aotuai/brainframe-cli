@@ -27,5 +27,5 @@ def translations_path() -> Path:
 
         raise RuntimeError(
             f"Unable to find the translations path! Started "
-            f"looking at: '{__file__.absolute()}'"
+            f"looking at: '{Path(__file__).absolute()}'"
         )

@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import i18n
 import requests
@@ -53,6 +53,7 @@ def download(target: Path, version: str = "latest") -> None:
     if version == "latest":
         version = get_latest_version()
 
+    credentials: Optional[Tuple[str, str]]
     if env_vars.is_staging.is_set():
         credentials = _get_staging_credentials()
     else:
@@ -84,6 +85,7 @@ def get_latest_version() -> str:
     """
     # Add the flags to authenticate with staging if the user wants to download
     # from there
+    credentials: Optional[Tuple[str, str]]
     if env_vars.is_staging.is_set():
         subdomain = "staging."
         credentials = _get_staging_credentials()
@@ -155,4 +157,6 @@ def _get_staging_credentials() -> Tuple[str, str]:
             password_env_var=env_vars.staging_password.name,
         )
 
-    return username, password
+    # Mypy doesn't understand that fail_translate exits this function, so it
+    # thinks the return type should be Tuple[Optional[str], Optional[str]]
+    return username, password  # type: ignore
