@@ -6,7 +6,6 @@ from pathlib import Path
 
 import i18n
 import requests
-
 from brainframe.cli import frozen_utils, print_utils
 
 from .utils import command

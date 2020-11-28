@@ -5,7 +5,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import i18n
-
 from brainframe.cli import (
     commands,
     env_vars,
