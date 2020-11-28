@@ -95,13 +95,14 @@ jobs:
       - run: poetry install --no-root
       - run: PYTHONPATH=$PYTHONPATH:. poetry run pyinstaller deployment/main.spec
       - persist_to_workspace:
-          root: dist
-          path: brainframe
+          root: .
+          paths:
+            - dist/brainframe
   upload_binary:
     docker:
       - image: amazon/aws-cli:2.0.14
     steps:
       - attach_workspace:
           at: /workspace
-      - run: aws s3 cp /workspace/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
+      - run: aws s3 cp /workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
       - run: aws cloudfront create-invalidation "$STAGING_CLOUDFRONT_DISTRIBUTION"
