@@ -102,6 +102,7 @@ jobs:
     docker:
       - image: amazon/aws-cli:2.0.14
     steps:
+      - run: yum -y install tar
       - attach_workspace:
           at: /workspace
       - run: aws s3 cp /workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
