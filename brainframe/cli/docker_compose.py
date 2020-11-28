@@ -52,7 +52,11 @@ def download(target: Path, version: str = "latest") -> None:
 
     if version == "latest":
         version = get_latest_version()
-    credentials = _get_staging_credentials()
+
+    if env_vars.is_staging.is_set():
+        credentials = _get_staging_credentials()
+    else:
+        credentials = None
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
         subdomain="staging." if env_vars.is_staging.is_set() else "",
