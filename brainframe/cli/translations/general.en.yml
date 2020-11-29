@@ -28,3 +28,5 @@ en:
   unexpected-group-for-file: "File \"%{path}\" is not owned by the
   \"%{group}\" group, but probably should be. Please add this file to the group
   or try again as root."
+  downloading-docker-compose-tool: "Downloading Docker Compose version %{version}..."
+  updating-docker-compose-tool: "Updating Docker Compose to version %{version}..."

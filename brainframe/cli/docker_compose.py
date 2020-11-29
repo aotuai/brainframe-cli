@@ -2,9 +2,11 @@ import os
 import subprocess
 from pathlib import Path
 from typing import List, TextIO, Tuple, cast
+import platform
 
 import i18n
 import yaml
+from packaging.version import Version
 
 from . import env_vars, os_utils, print_utils
 
@@ -14,6 +16,13 @@ BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/
 # as a string
 BRAINFRAME_LATEST_TAG_URL = (
     "https://{subdomain}aotu.ai/releases/brainframe/latest"
+)
+# The required Docker Compose executable version
+TOOL_VERSION = Version("1.27.4")
+# The URL to download the Docker Compose executable from
+TOOL_URL = (
+    "https://github.com/docker/compose/releases/download/"
+    "{version}/docker-compose-{os}-{architecture}"
 )
 
 
@@ -29,10 +38,11 @@ def assert_installed(install_path: Path) -> None:
 
 def run(install_path: Path, commands: List[str]) -> None:
     _assert_has_docker_permissions()
+    tool_path = _assert_tool_installed(install_path)
 
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = ["docker-compose", "--file", str(compose_path)]
+    full_command = [str(tool_path), "--file", str(compose_path)]
 
     # Provide the override file if it exists
     compose_override_path = install_path / "docker-compose.override.yml"
@@ -150,3 +160,68 @@ def _group_recommendation_message(group: str) -> str:
         # The user is not in the group, so they need to either add
         # themselves or use sudo
         return i18n.t("general.retry-as-root-or-group", group=group)
+
+
+def _assert_tool_installed(install_path: Path) -> Path:
+    """Checks if Docker Compose is installed and at the desired version, and
+    installs it if not.
+
+    :param install_path: The configured install path
+    :return: The path to the Docker Compose executable
+    """
+    tool_path = (install_path / "docker-compose").absolute()
+
+    if not tool_path.is_file():
+        print_utils.translate(
+            "general.downloading-docker-compose-tool", version=TOOL_VERSION
+        )
+        _install_tool(tool_path)
+    elif TOOL_VERSION > _get_tool_version(tool_path):
+        print_utils.translate(
+            "general.updating-docker-compose-tool", version=TOOL_VERSION
+        )
+        _install_tool(tool_path)
+
+    return tool_path
+
+
+def _install_tool(tool_path: Path) -> None:
+    """Installs Docker Compose.
+
+    :param tool_path: The path to install Docker Compose to
+    """
+    # Fill in the Docker Compose download URL with the desired version and
+    # information about this machine
+    tool_url = TOOL_URL.format(
+        version=TOOL_VERSION,
+        os=platform.system(),
+        architecture=platform.machine(),
+    )
+
+    os_utils.run(["curl", "-L", tool_url, "-o", str(tool_path)])
+    os_utils.run(["chmod", "+x", str(tool_path)])
+
+    if os_utils.is_root():
+        # Fix the permissions of the Docker Compose executable so that the
+        # "brainframe" group can edit it
+        os_utils.give_brainframe_group_rw_access([tool_path])
+
+
+def _get_tool_version(tool_path: Path) -> Version:
+    """
+    :param tool_path: The path to the Docker Compose executable
+    :return: The currently installed Docker Compose version
+    """
+    result = os_utils.run(
+        [str(tool_path), "version", "--short"],
+        print_command=False,
+        stdout=subprocess.PIPE,
+        encoding="utf-8",
+    )
+
+    # stdout is a file-like object opened in text mode when the encoding
+    # argument is "utf-8"
+    stdout = cast(TextIO, result.stdout)
+    version_str = stdout.readline().strip()
+
+    return Version(version_str)

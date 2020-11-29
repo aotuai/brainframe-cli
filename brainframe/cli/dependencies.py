@@ -63,23 +63,6 @@ def _install_docker():
 
 docker = Dependency("docker", "install.ask-install-docker", _install_docker,)
 
-docker_compose = Dependency(
-    "docker-compose",
-    "install.ask-install-docker-compose",
-    lambda: os_utils.run(
-        [
-            "pip3",
-            "install",
-            # Avoids warning message about touching the non-root user's cache
-            "--no-cache-dir",
-            # Installs globally even if the user has docker-compose installed
-            # locally
-            "--ignore-installed",
-            "docker-compose",
-        ]
-    ),
-)
-
 rsync = Dependency(
     "rsync",
     "install.ask-install-rsync",
