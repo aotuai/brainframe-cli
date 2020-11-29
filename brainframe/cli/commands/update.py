@@ -33,7 +33,8 @@ def update():
         # Ask the user if non-upgrades should be allowed
         if existing_version >= requested_version:
             force_non_upgrade = print_utils.ask_yes_no(
-                "general.ask-force-non-upgrade")
+                "general.ask-force-non-upgrade"
+            )
 
     if not force_non_upgrade:
         # Fail if the requested version is not an upgrade
