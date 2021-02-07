@@ -19,6 +19,15 @@ workflows:
             # Run only when a tag is created
             tags:
               only: /^v.+\..+\..+/
+      - publish_pkgbuild_to_aur:
+          context: aur
+#          filters:
+#            # Ignore any commit on any branch by default
+#            branches:
+#              ignore: /.*/
+#            # Run only when a tag is created
+#            tags:
+#              only: /^v.+\..+\..+/
   tests:
     jobs:
       - test_installation
@@ -36,6 +45,7 @@ jobs:
       - run: poetry run isort --check .
       - run: poetry run black --check .
       - run: poetry run mypy -p "brainframe.cli"
+
   upload_to_pypi:
     docker:
       - image: circleci/python:3.6
@@ -48,6 +58,68 @@ jobs:
           | python3 - --version << pipeline.parameters.poetry_version >>"
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
+
+  publish_pkgbuild_to_aur:
+    docker:
+      - image: archlinux/base-devel
+    steps:
+      - run:
+          name: "Install build dependencies"
+          command: |
+            pacman -Syu --noconfirm
+            # pacman-contrib required for updpkgsums
+            pacman -S --noconfirm \
+              wget openssh \
+              pacman-contrib \ # required for updpkgsums
+              python-poetry  # required to get package version
+      - run:
+          name: "Download release tar and extract it"
+          command: >
+            wget -O - https://github.com/aotuai/brainframe-cli/archive/${CIRCLE_TAG}.tar.gz
+            | tar xvz --one-top-level=${OUTPUT_DIR} --strip-components=1
+          environment:
+            OUTPUT_DIR: brainframe-cli-upstream/
+      - run:
+          name: "Get BrainFrame CLI version from pyproject.toml"
+          working_directory: brainframe-cli-upstream/
+          command: echo 'export BRAINFRAME_CLI_VERSION=$(poetry version --short)' | tee -a $BASH_ENV
+      - run:
+          name: "Set up SSH for AUR repo"
+          command: |
+            ssh-keyscan -v -t ed25519 aur.archlinux.org >> ~/.ssh/known_hosts
+            echo ${AUR_PRIVATE_SSH_KEY} > ~/.ssh/aur
+            chmod -v 600 ~/.ssh/aur
+            ssh-keygen -vy -f ~/.ssh/aur > ~/.ssh/aur.pub
+      - run:
+          name: "Clone AUR repo"
+          command: git clone -v https://aur.archlinux.org/brainframe-cli.git brainframe-cli-aur
+      - run:
+          name: "Add/overwrite necessary files to AUR repo"
+          command: cp -r ./brainframe-cli-upstream/package/aur/. ./brainframe-cli-aur/
+      - run:
+          name: "Bump version and sha256 sums in PKGBUILD"
+          working_directory: brainframe-cli-aur/
+          command: |
+            sed -i 's/%PKGVER%/${BRAINFRAME_CLI_VERSION}/g' PKGBUILD
+            updpkgsums
+      - run:
+          name: "Update .SRCINFO"
+          working_directory: brainframe-cli-aur/
+          command: makepkg --printsrcinfo > .SRCINFO
+      - run:
+          name: "Configure git in AUR repo"
+          working_directory: brainframe-cli-aur/
+          command: |
+            git config user.email "aotooling@aotu.ai"
+            git config user.name "Aotu"
+      - run:
+          name: "Commit and push changes to package"
+          working_directory: brainframe-cli-aur/
+          command: |
+            git add --verbose --all
+            git commit -m "Update to ${CIRCLE_TAG}"
+#            git push --verbose --dry-run
+
   test_installation:
     machine:
       image: ubuntu-2004:202010-01
@@ -78,3 +150,6 @@ jobs:
             echo "BrainFrame core service is up."
           no_output_timeout: 1m
       - run: sudo $(which poetry) run brainframe compose down
+
+
+wget -qO- https://github.com/aotuai/brainframe-cli/archive/v0.2.0.tar.gz | tar xvz - -C ./directory

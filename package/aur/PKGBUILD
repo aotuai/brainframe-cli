@@ -1,7 +1,7 @@
 # Maintainer: Aotu <aotooling at aotu dot ai>
 
 pkgname=brainframe-cli
-pkgver=0.2.0
+pkgver=%PKGVER%
 pkgrel=1
 pkgdesc="CLI to interact with the BrainFrame backend"
 arch=('any')
@@ -11,7 +11,7 @@ groups=('brainframe')
 depends=('brainframe-backend' 'python-i18n' 'python-yaml' 'python-distro' 'python-packaging')
 makedepends=('python-dephell')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/aotuai/brainframe-cli/archive/v${pkgver}.tar.gz")
-sha512sums=("f003e7a3705019c572c8c6684f80ff89a65bd21f7906708c526db6ab0c8222ba280656abb4ac048dc4099d4b81fdbd56491c27b9cccf4c980b532785ba28cc23")
+sha512sums=("filled-in-by-updpkgsums")
 
 prepare() {
 	  cd "${pkgname}-${pkgver}"
