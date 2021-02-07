@@ -150,6 +150,3 @@ jobs:
             echo "BrainFrame core service is up."
           no_output_timeout: 1m
       - run: sudo $(which poetry) run brainframe compose down
-
-
-wget -qO- https://github.com/aotuai/brainframe-cli/archive/v0.2.0.tar.gz | tar xvz - -C ./directory
