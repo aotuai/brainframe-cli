@@ -61,7 +61,7 @@ jobs:
 
   publish_pkgbuild_to_aur:
     docker:
-      - image: archlinux/base-devel
+      - image: archlinux:base-devel
     steps:
       - run:
           name: "Install build dependencies"
