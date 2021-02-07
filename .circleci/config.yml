@@ -32,7 +32,6 @@ workflows:
     jobs:
       - test_installation
 
-
 jobs:
   lint:
     docker:
@@ -63,6 +62,12 @@ jobs:
     docker:
       - image: archlinux:base-devel
     steps:
+      - run:
+          name: "Update mirrors"
+          command: |
+            pacman -Syu --noconfirm
+            pacman -S reflector
+            reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
       - run:
           name: "Install build dependencies"
           command: |
