@@ -60,7 +60,7 @@ jobs:
 
   publish_pkgbuild_to_aur:
     docker:
-      - image: archlinux:base-devel
+      - image: archlinux:base
     steps:
       - run:
           name: "Update mirrors"
