@@ -71,8 +71,7 @@ jobs:
             pacman -S reflector
             reflector --verbose --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
           environment:
-            # Old date to avoid https://bugs.archlinux.org/task/69563
-            PACKAGE_LOCK_DATE: "2021/02/01"
+            PACKAGE_LOCK_DATE: "2021/02/26"
       - run:
           name: "Install build dependencies"
           command: |
