@@ -35,6 +35,8 @@ class Option(Generic[T]):
     ) -> None:
         default = defaults.get(self.name)
         env_var_name = "BRAINFRAME_" + self.name.upper()
+
+        value: Optional[str]
         if env_var_name in os.environ:
             value = os.environ[env_var_name]
         else:
