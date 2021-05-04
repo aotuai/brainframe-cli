@@ -1,7 +1,7 @@
 import os
 from distutils.util import strtobool
 from pathlib import Path
-from typing import Callable, Dict, Generic, Optional, TypeVar
+from typing import Callable, Dict, Generic, Optional, TypeVar, Union
 
 import yaml
 
@@ -68,6 +68,13 @@ def load() -> None:
     install_path.load(Path, defaults)
     data_path.load(Path, defaults)
 
-    is_staging.load(strtobool, defaults)
+    is_staging.load(_bool_converter, defaults)
     staging_username.load(str, defaults)
     staging_password.load(str, defaults)
+
+
+def _bool_converter(value: Union[str, bool]) -> bool:
+    if isinstance(value, bool):
+        return value
+
+    return strtobool(value)
