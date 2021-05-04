@@ -3,9 +3,9 @@ from pathlib import Path
 
 import i18n
 from brainframe.cli import (
+    config,
     dependencies,
     docker_compose,
-    env_vars,
     os_utils,
     print_utils,
 )
@@ -52,8 +52,8 @@ def install():
         # Ask the user if they want to specify special paths for installation
         print_utils.translate(
             "install.default-paths",
-            default_install_path=env_vars.install_path.default,
-            default_data_path=env_vars.data_path.default,
+            default_install_path=config.install_path.default,
+            default_data_path=config.data_path.default,
         )
         use_default_paths = print_utils.ask_yes_no(
             "install.ask-use-default-paths",
@@ -63,11 +63,10 @@ def install():
     if args.noninteractive:
         install_path = args.install_path
     elif use_default_paths:
-        install_path = env_vars.install_path.default
+        install_path = config.install_path.default
     else:
         install_path = print_utils.ask_path(
-            "install.ask-brainframe-install-path",
-            env_vars.install_path.default,
+            "install.ask-brainframe-install-path", config.install_path.default,
         )
     install_path.mkdir(exist_ok=True, parents=True)
 
@@ -75,10 +74,10 @@ def install():
     if args.noninteractive:
         data_path = args.data_path
     elif use_default_paths:
-        data_path = env_vars.data_path.default
+        data_path = config.data_path.default
     else:
         data_path = print_utils.ask_path(
-            "install.ask-data-path", env_vars.data_path.default
+            "install.ask-data-path", config.data_path.default
         )
     data_path.mkdir(exist_ok=True, parents=True)
 
@@ -117,15 +116,15 @@ def install():
     # Recommend to the user to add their custom paths to environment variables
     # so that future invocations of the program will know where to look.
     if (
-        install_path != env_vars.install_path.default
-        or data_path != env_vars.data_path.default
+        install_path != config.install_path.default
+        or data_path != config.data_path.default
     ):
         print()
         print_utils.translate("install.set-custom-directory-env-vars")
         print(
             f"\n"
-            f'export {env_vars.install_path.name}="{install_path}"\n'
-            f'export {env_vars.data_path.name}="{data_path}"\n'
+            f'export {config.install_path.name}="{install_path}"\n'
+            f'export {config.data_path.name}="{data_path}"\n'
         )
 
 
@@ -143,13 +142,13 @@ def _parse_args():
     parser.add_argument(
         "--install-path",
         type=Path,
-        default=env_vars.install_path.default,
+        default=config.install_path.default,
         help=i18n.t("install.install-path-help"),
     )
     parser.add_argument(
         "--data-path",
         type=Path,
-        default=env_vars.data_path.default,
+        default=config.data_path.default,
         help=i18n.t("install.data-path-help"),
     )
     parser.add_argument(

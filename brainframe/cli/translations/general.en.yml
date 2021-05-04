@@ -28,3 +28,6 @@ en:
   unexpected-group-for-file: "File \"%{path}\" is not owned by the
   \"%{group}\" group, but probably should be. Please add this file to the group
   or try again as root."
+  missing-defaults-file: "This distribution is missing a defaults file,
+  expected at \"%{defaults_file_path}\". Please try re-installing the latest
+  version of the BrainFrame CLI and trying again."

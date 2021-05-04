@@ -1,4 +1,4 @@
 #!/usr/bin/make -f
 
 %:
-	dh $@ --with python-virtualenv --python python3 --extras compose
+	dh $@ --with python-virtualenv --python python3
