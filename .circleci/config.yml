@@ -33,7 +33,6 @@ jobs:
       - image: cimg/python:3.6
     steps:
       - checkout
-      - install-poetry
       - run: poetry install --no-root
       - run: poetry run isort --check .
       - run: poetry run black --check .
@@ -67,7 +66,6 @@ jobs:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
     steps:
       - checkout
-      - install-poetry
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
 
