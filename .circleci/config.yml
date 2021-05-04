@@ -33,8 +33,7 @@ jobs:
       - image: cimg/python:3.6
     steps:
       - checkout
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry-version >>"
+      - install-poetry
       - run: poetry install --no-root
       - run: poetry run isort --check .
       - run: poetry run black --check .
@@ -44,10 +43,10 @@ jobs:
     docker:
       - image: cimg/python:3.6
     steps:
-      - run: apt-get update
-      - run: apt-get install -y software-properties-common dpkg-dev devscripts equivs
-      - run: add-apt-repository ppa:jyrki-pulliainen/dh-virtualenv
-      - run: apt-get install -y dh-virtualenv
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
+      - run: sudo add-apt-repository ppa:jyrki-pulliainen/dh-virtualenv
+      - run: sudo apt-get install -y dh-virtualenv
       - install-poetry
       - checkout
       - run: cp -r package/debian .
@@ -63,8 +62,7 @@ jobs:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
     steps:
       - checkout
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry-version >>"
+      - install-poetry
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
 
@@ -75,9 +73,7 @@ jobs:
       - run: sudo apt-get update
       - run: sudo apt-get install python3 python3-dev curl git -y
       - checkout
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry-version >>"
-      - run: echo "export PATH=$PATH:$HOME/.poetry/bin" >> $BASH_ENV
+      - install-poetry
       - run: sudo $(which poetry) install
       - run: sudo $(which poetry) run brainframe install --noninteractive
       - run: sudo $(which poetry) run brainframe compose up -d
