@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Generic, Optional, TypeVar
 
 import yaml
+from distutils.util import strtobool
 
 from . import print_utils
 
@@ -63,11 +64,6 @@ def load():
     install_path.load(Path, defaults)
     data_path.load(Path, defaults)
 
-    is_staging.load(_str_to_bool, defaults)
+    is_staging.load(strtobool, defaults)
     staging_username.load(str, defaults)
     staging_password.load(str, defaults)
-
-
-def _str_to_bool(value: str) -> bool:
-    value = value.lower().strip()
-    return value == "true"
