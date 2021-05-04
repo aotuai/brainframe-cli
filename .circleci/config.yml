@@ -1,7 +1,7 @@
 version: 2.1
 
 parameters:
-  poetry_version:
+  poetry-version:
     type: string
     default: "1.1.4"
 
@@ -34,7 +34,7 @@ jobs:
     steps:
       - checkout
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry_version >>"
+          | python3 - --version << pipeline.parameters.poetry-version >>"
       - run: poetry install --no-root
       - run: poetry run isort --check .
       - run: poetry run black --check .
@@ -58,7 +58,7 @@ jobs:
 
   upload_to_pypi:
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
     environment:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
     steps:
