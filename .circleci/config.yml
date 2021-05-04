@@ -51,6 +51,7 @@ jobs:
       - checkout
       - run: cp -r package/debian .
       - run: cp package/setup.py .
+      - run: cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml
       - run: sudo mk-build-deps --install debian/control
       - run: poetry export --output requirements.txt
       - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary

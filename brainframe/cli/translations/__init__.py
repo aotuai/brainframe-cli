@@ -1,3 +1,3 @@
-import os
+from pathlib import Path
 
-PATH = os.path.dirname(__file__)
+PATH = Path(__file__).parent

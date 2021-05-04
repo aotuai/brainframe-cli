@@ -17,6 +17,9 @@ setuptools.setup(
     version=version,
     packages=setuptools.find_namespace_packages(include="brainframe*",),
     scripts=["brainframe/cli/main.py"],
-    package_data={"brainframe.cli.translations": ["*.yml"]},
+    package_data={
+        "brainframe.cli.translations": ["*.yml"],
+        "brainframe.cli": ["defaults.yaml"],
+    },
     include_package_data=True,
 )

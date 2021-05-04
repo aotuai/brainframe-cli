@@ -30,7 +30,7 @@ def install():
         print()
 
     # Check all dependencies
-    dependencies.curl.ensure(args.noninteractive, args.install_curl)
+    dependencies.curl.ensure(args.noninteractive, False)
     dependencies.docker.ensure(args.noninteractive, args.install_docker)
 
     _, _, download_version = docker_compose.check_download_version()
@@ -156,16 +156,6 @@ def _parse_args():
         "--install-docker",
         action="store_true",
         help=i18n.t("install.install-docker-help"),
-    )
-    parser.add_argument(
-        "--install-docker-compose",
-        action="store_true",
-        help=i18n.t("install.install-docker-compose-help"),
-    )
-    parser.add_argument(
-        "--install-curl",
-        action="store_true",
-        help=i18n.t("install.install-curl-help"),
     )
     parser.add_argument(
         "--add-to-group",

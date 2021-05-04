@@ -16,7 +16,7 @@ from brainframe.cli import (
 
 
 def main():
-    i18n.load_path.append(translations.PATH)
+    i18n.load_path.append(str(translations.PATH))
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")
