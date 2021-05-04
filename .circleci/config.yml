@@ -48,8 +48,7 @@ jobs:
       - run: apt-get install -y software-properties-common dpkg-dev devscripts equivs
       - run: add-apt-repository ppa:jyrki-pulliainen/dh-virtualenv
       - run: apt-get install -y dh-virtualenv
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry_version >>"
+      - install-poetry
       - checkout
       - run: cp -r package/debian .
       - run: cp package/setup.py .
@@ -99,3 +98,14 @@ jobs:
             echo "BrainFrame core service is up."
           no_output_timeout: 1m
       - run: sudo $(which poetry) run brainframe compose down
+
+
+commands:
+  install-poetry:
+    steps:
+      - run: sudo apt-get update && sudo apt-get install -y python3-pip
+      - run: >
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          | python3 - --version << pipeline.parameters.poetry-version >>
+      # Add to the PATH
+      - run: echo "export PATH=$HOME/.poetry/bin:$PATH" >> $BASH_ENV
