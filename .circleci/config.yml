@@ -76,7 +76,7 @@ jobs:
       - run: sudo apt-get install python3 python3-dev curl git -y
       - checkout
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry_version >>"
+          | python3 - --version << pipeline.parameters.poetry-version >>"
       - run: echo "export PATH=$PATH:$HOME/.poetry/bin" >> $BASH_ENV
       - run: sudo $(which poetry) install
       - run: sudo $(which poetry) run brainframe install --noninteractive
