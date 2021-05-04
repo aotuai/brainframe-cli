@@ -9,6 +9,9 @@ workflows:
   lint:
     jobs:
       - lint
+  build:
+    jobs:
+      - build_deb
   deploy:
     jobs:
       - upload_to_pypi:
