@@ -39,7 +39,7 @@ jobs:
       - run: poetry run black --check .
       - run: poetry run mypy -p "brainframe.cli"
 
-  build_deb:
+  build-deb:
     docker:
       - image: cimg/python:3.6
     steps:
@@ -54,8 +54,11 @@ jobs:
       - run: sudo mk-build-deps --install debian/control
       - run: poetry export --output requirements.txt
       - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
+      - store_artifacts:
+          path: /brainframe-cli*.deb
+          destination: brainframe-cli.deb
 
-  upload_to_pypi:
+  upload-to-pypi:
     docker:
       - image: cimg/python:3.6
     environment:
@@ -66,7 +69,7 @@ jobs:
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
 
-  test_installation:
+  test-installation:
     machine:
       image: ubuntu-2004:202010-01
     steps:
