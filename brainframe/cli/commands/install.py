@@ -32,9 +32,6 @@ def install():
     # Check all dependencies
     dependencies.curl.ensure(args.noninteractive, args.install_curl)
     dependencies.docker.ensure(args.noninteractive, args.install_docker)
-    dependencies.docker_compose.ensure(
-        args.noninteractive, args.install_docker_compose
-    )
 
     _, _, download_version = docker_compose.check_download_version()
     print_utils.translate("install.install-version", version=download_version)

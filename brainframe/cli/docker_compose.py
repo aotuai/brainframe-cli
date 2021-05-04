@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import List, TextIO, Tuple, cast
 
@@ -32,7 +33,13 @@ def run(install_path: Path, commands: List[str]) -> None:
 
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = ["docker-compose", "--file", str(compose_path)]
+    full_command = [
+        sys.executable,
+        "-m",
+        "compose",
+        "--file",
+        str(compose_path),
+    ]
 
     # Provide the override file if it exists
     compose_override_path = install_path / "docker-compose.override.yml"

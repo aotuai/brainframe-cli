@@ -21,6 +21,7 @@ python-i18n = "^0.3"
 pyyaml = "^5.3"
 distro = "^1.5"
 packaging = "^20.4"
+docker-compose = "^1.29.1"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"

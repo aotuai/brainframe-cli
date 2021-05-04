@@ -36,18 +36,36 @@ jobs:
       - run: poetry run isort --check .
       - run: poetry run black --check .
       - run: poetry run mypy -p "brainframe.cli"
+
+  build_deb:
+    docker:
+      - image: ubuntu:18.04
+    steps:
+      - run: apt-get update
+      - run: apt-get install -y software-properties-common dpkg-dev devscripts equivs
+      - run: add-apt-repository ppa:jyrki-pulliainen/dh-virtualenv
+      - run: apt-get install -y dh-virtualenv
+      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          | python3 - --version << pipeline.parameters.poetry_version >>"
+      - checkout
+      - run: cp -r package/debian .
+      - run: cp package/setup.py .
+      - run: mk-build-deps --install debian/control
+      - run: poetry export --output requirements.txt
+      - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
+
   upload_to_pypi:
     docker:
       - image: circleci/python:3.6
     environment:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
-
     steps:
       - checkout
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
           | python3 - --version << pipeline.parameters.poetry_version >>"
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
+
   test_installation:
     machine:
       image: ubuntu-2004:202010-01

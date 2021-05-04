@@ -1,14 +1,22 @@
+#!/usr/bin/env python3
+
 import os
 import signal
 import sys
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import commands, env_vars, os_utils, print_utils
+from brainframe.cli import (
+    commands,
+    env_vars,
+    os_utils,
+    print_utils,
+    translations,
+)
 
 
 def main():
-    i18n.load_path.append(_TRANSLATIONS_PATH)
+    i18n.load_path.append(translations.PATH)
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")
@@ -47,8 +55,6 @@ def main():
         )
         parser.print_help()
 
-
-_TRANSLATIONS_PATH = os.path.join(os.path.dirname(__file__), "translations")
 
 if __name__ == "__main__":
     main()
