@@ -1,9 +1,9 @@
 import os
+from distutils.util import strtobool
 from pathlib import Path
-from typing import Generic, Optional, TypeVar, Callable, Dict
+from typing import Callable, Dict, Generic, Optional, TypeVar
 
 import yaml
-from distutils.util import strtobool
 
 from . import print_utils
 
@@ -30,7 +30,9 @@ class Option(Generic[T]):
     def __init__(self, name: str):
         self.name = name
 
-    def load(self, converter: Callable[[str], T], defaults: Dict[str, str]) -> None:
+    def load(
+        self, converter: Callable[[str], T], defaults: Dict[str, str]
+    ) -> None:
         default = defaults.get(self.name)
         env_var_name = "BRAINFRAME_" + self.name.upper()
         if env_var_name in os.environ:
