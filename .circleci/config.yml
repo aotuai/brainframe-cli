@@ -41,7 +41,7 @@ jobs:
 
   build-deb:
     docker:
-      - image: cimg/python:3.6
+      - image: cimg/base:stable-18.04
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
