@@ -19,8 +19,8 @@ BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
 @command("backup")
 def backup():
-    install_path = config.install_path.get()
-    data_path = config.data_path.get()
+    install_path = config.install_path.value
+    data_path = config.data_path.value
 
     args = _parse_args(data_path)
 

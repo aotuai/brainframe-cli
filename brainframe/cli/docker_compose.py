@@ -80,11 +80,11 @@ def check_download_version(
 
     # Add the flags to authenticate with staging if the user wants to download
     # from there
-    if config.is_staging:
+    if config.is_staging.value:
         subdomain = "staging."
 
-        username = config.staging_username.get()
-        password = config.staging_password.get()
+        username = config.staging_username.value
+        password = config.staging_password.value
         if username is None or password is None:
             print_utils.fail_translate(
                 "general.staging-missing-credentials",

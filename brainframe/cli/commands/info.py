@@ -10,15 +10,15 @@ from .utils import command, subcommand_parse_args
 def info():
     args = _parse_args()
 
-    docker_compose.assert_installed(config.install_path.get())
+    docker_compose.assert_installed(config.install_path.value)
 
     server_version = docker_compose.check_existing_version(
-        config.install_path.get()
+        config.install_path.value
     )
 
     fields = {
-        "install_path": config.install_path.get(),
-        "data_path": config.data_path.get(),
+        "install_path": config.install_path.value,
+        "data_path": config.data_path.value,
         "server_version": server_version,
     }
 

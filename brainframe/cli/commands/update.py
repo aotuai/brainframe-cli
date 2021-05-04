@@ -11,7 +11,7 @@ from .utils import command, subcommand_parse_args
 def update():
     args = _parse_args()
 
-    install_path = config.install_path.get()
+    install_path = config.install_path.value
 
     docker_compose.assert_installed(install_path)
 
