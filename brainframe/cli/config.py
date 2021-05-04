@@ -30,15 +30,15 @@ class Option(Generic[T]):
         self.name = name
 
     def load(self, converter, defaults):
-        self.default = defaults.get(self.name)
-
+        default = defaults.get(self.name)
         env_var_name = "BRAINFRAME_" + self.name.upper()
         if env_var_name in os.environ:
             value = os.environ[env_var_name]
         else:
-            value = self.default
+            value = default
 
         self.value = None if value is None else converter(value)
+        self.default = None if default is None else converter(default)
 
 
 install_path = Option[Path]("install_path")
