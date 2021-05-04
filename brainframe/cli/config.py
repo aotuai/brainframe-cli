@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Generic, Optional, TypeVar
+from typing import Generic, Optional, TypeVar, Callable, Dict
 
 import yaml
 from distutils.util import strtobool
@@ -27,10 +27,10 @@ class Option(Generic[T]):
     value: Optional[T] = None
     default: Optional[T] = None
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         self.name = name
 
-    def load(self, converter, defaults):
+    def load(self, converter: Callable[[str], T], defaults: Dict[str, str]) -> None:
         default = defaults.get(self.name)
         env_var_name = "BRAINFRAME_" + self.name.upper()
         if env_var_name in os.environ:
@@ -50,7 +50,7 @@ staging_username = Option[str]("staging_username")
 staging_password = Option[str]("staging_password")
 
 
-def load():
+def load() -> None:
     """Initializes configuration options"""
     if not _DEFAULTS_FILE_PATH.is_file():
         print_utils.fail_translate(
