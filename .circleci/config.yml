@@ -104,4 +104,4 @@ commands:
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
           | python3 - --version << pipeline.parameters.poetry-version >>
       # Add to the PATH
-      - run: echo "export PATH=$HOME/.poetry/bin:$PATH" >> $BASH_ENV
+      - run: echo 'export PATH=$HOME/.poetry/bin:$PATH' >> $BASH_ENV
