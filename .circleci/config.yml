@@ -51,7 +51,7 @@ jobs:
       - checkout
       - run: cp -r package/debian .
       - run: cp package/setup.py .
-      - run: mk-build-deps --install debian/control
+      - run: sudo mk-build-deps --install debian/control
       - run: poetry export --output requirements.txt
       - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
 
