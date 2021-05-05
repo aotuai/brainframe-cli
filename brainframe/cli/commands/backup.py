@@ -31,7 +31,7 @@ def backup():
 
     docker_compose.assert_installed(install_path)
 
-    dependencies.rsync.ensure(args.noninteractive, False)
+    dependencies.rsync.ensure(args.noninteractive, args.install_rsync)
 
     if not args.noninteractive:
         stop_brainframe = print_utils.ask_yes_no("backup.ask-stop-brainframe")
@@ -92,6 +92,12 @@ def _parse_args(data_path: Path):
         "--noninteractive",
         action="store_true",
         help=i18n.t("general.noninteractive-help"),
+    )
+
+    parser.add_argument(
+        "--install-rsync",
+        action="store_true",
+        help=i18n.t("backup.install-rsync-help"),
     )
 
     return subcommand_parse_args(parser)
