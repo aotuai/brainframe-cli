@@ -9,9 +9,10 @@ workflows:
   lint:
     jobs:
       - lint
-  build:
+  deb:
     jobs:
       - build-deb
+      - test-installation-deb
   deploy:
     jobs:
       - upload-to-pypi:
@@ -25,9 +26,6 @@ workflows:
   tests:
     jobs:
       - test-installation-source
-      - test-installation-deb:
-          requires:
-            - build-deb
 
 
 jobs:
