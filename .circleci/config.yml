@@ -25,7 +25,9 @@ workflows:
   tests:
     jobs:
       - test-installation-source
-      - test-installation-deb
+      - test-installation-deb:
+          requires:
+            - build-deb
 
 
 jobs:
