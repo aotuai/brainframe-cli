@@ -43,7 +43,7 @@ jobs:
 
   build-deb:
     docker:
-      - image: cimg/base:stable-18.04
+      - image: cimg/base:stable-20.04
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
