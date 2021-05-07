@@ -25,7 +25,19 @@ def update():
     existing_version = version.parse(existing_version_str)
     requested_version = version.parse(requested_version_str)
 
-    if not args.force:
+    force_downgrade = False
+    if args.noninteractive:
+        # Use the --force flag to decide if downgrades are allowed
+        force_downgrade = args.force
+    else:
+        # Ask the user if downgrades should be allowed
+        if existing_version >= requested_version:
+            force_downgrade = print_utils.ask_yes_no(
+                "update.ask-force-downgrade"
+            )
+
+    if not force_downgrade:
+        # Fail if the requested version is not an upgrade
         if existing_version == requested_version:
             print_utils.fail_translate(
                 "update.version-already-installed",

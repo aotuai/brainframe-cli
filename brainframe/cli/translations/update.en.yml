@@ -20,3 +20,7 @@ en:
   than the currently installed version, BrainFrame:%{existing_version}. We
   don't recommend downgrading BrainFrame for data integrity reasons. This
   request will be ignored. You can force a downgrade using the --force flag."
+  ask-force-downgrade: "BrainFrame:%{requested_version} does not appear to
+  be a newer version then the current version, BrainFrame:%{existing_version}.
+  Downgrading BrainFrame is not officially supported and may lead to data loss.
+  Are you sure you want to continue?"
