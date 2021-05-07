@@ -12,7 +12,9 @@ workflows:
   deb:
     jobs:
       - build-deb
-      - test-installation-deb
+      - test-installation-deb:
+          requires:
+            - build-deb
   deploy:
     jobs:
       - upload-to-pypi:
