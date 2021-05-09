@@ -13,7 +13,7 @@ workflows:
     jobs:
       - build-deb:
           parameters:
-            ubuntu-version: ["18.04", "20.04"]
+            ubuntu-release: [bionic, focal]
       - test-installation-deb:
           requires:
             - build-deb
@@ -32,6 +32,15 @@ workflows:
       - test-installation-source
 
 
+executors:
+  bionic:
+    docker:
+      - image: cimg/base:stable-20.04
+  focal:
+    docker:
+      - image: cimg/base:stable-18.04
+
+
 jobs:
   lint:
     docker:
@@ -45,10 +54,9 @@ jobs:
 
   build-deb:
     parameters:
-      ubuntu-version:
-        type: string
-    docker:
-      - image: cimg/base:stable-<< parameters.ubuntu-version >>
+      ubuntu-release:
+        type: executor
+    executor: << parameters.ubuntu-release >>
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
@@ -66,7 +74,7 @@ jobs:
       - run: mv ../brainframe-cli*.deb dist/brainframe-cli.deb
       - store_artifacts:
           path: brainframe-cli.deb
-          destination: brainframe-cli-<< parameters.ubuntu-version >>.deb
+          destination: brainframe-cli-<< parameters.ubuntu-release >>.deb
       - persist_to_workspace:
           root: .
           paths:
@@ -79,7 +87,7 @@ jobs:
       - run: sudo apt-get update
       - attach_workspace:
           at: /tmp/workspace
-      - run: sudo apt-get install /tmp/workspace/dist/brainframe-cli-20.04.deb
+      - run: sudo apt-get install /tmp/workspace/dist/brainframe-cli-focal.deb
       - run: sudo brainframe install --noninteractive
       - run: sudo brainframe compose up -d
       - assert-core-container-running
