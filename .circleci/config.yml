@@ -5,6 +5,16 @@ parameters:
     type: string
     default: "1.1.4"
 
+
+executors:
+  bionic:
+    docker:
+      - image: cimg/base:stable-20.04
+  focal:
+    docker:
+      - image: cimg/base:stable-18.04
+
+
 workflows:
   lint:
     jobs:
@@ -30,15 +40,6 @@ workflows:
   tests:
     jobs:
       - test-installation-source
-
-
-executors:
-  bionic:
-    docker:
-      - image: cimg/base:stable-20.04
-  focal:
-    docker:
-      - image: cimg/base:stable-18.04
 
 
 jobs:
