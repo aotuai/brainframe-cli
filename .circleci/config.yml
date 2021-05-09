@@ -59,8 +59,6 @@ jobs:
       os:
         type: executor
     executor: << parameters.os >>
-    environment:
-      OS: << parameters.os >>
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
@@ -75,10 +73,11 @@ jobs:
       - run: poetry export --output requirements.txt
       - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
       - run: mkdir dist
-      - run: mv ../brainframe-cli*.deb dist/brainframe-cli-${OS}.deb
+      - run: |
+          export CODENAME=$(lsb_release --codename --short)
+          mv ../brainframe-cli*.deb dist/brainframe-cli-${CODENAME}.deb
       - store_artifacts:
-          path: brainframe-cli-<< parameters.os >>.deb
-          destination: brainframe-cli-<< parameters.os >>.deb
+          path: dist
       - persist_to_workspace:
           root: .
           paths:
