@@ -30,15 +30,18 @@ class Option(Generic[T]):
     def __init__(self, name: str):
         self.name = name
 
+    @property
+    def env_var_name(self):
+        return "BRAINFRAME_" + self.name.upper()
+
     def load(
         self, converter: Callable[[str], T], defaults: Dict[str, str]
     ) -> None:
         default = defaults.get(self.name)
-        env_var_name = "BRAINFRAME_" + self.name.upper()
 
         value: Optional[str]
-        if env_var_name in os.environ:
-            value = os.environ[env_var_name]
+        if self.env_var_name in os.environ:
+            value = os.environ[self.env_var_name]
         else:
             value = default
 
