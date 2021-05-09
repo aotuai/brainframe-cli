@@ -11,7 +11,9 @@ workflows:
       - lint
   deb:
     jobs:
-      - build-deb
+      - build-deb:
+          parameters:
+            ubuntu-version: ["18.04", "20.04"]
       - test-installation-deb:
           requires:
             - build-deb
@@ -42,8 +44,11 @@ jobs:
       - run: poetry run mypy -p "brainframe.cli"
 
   build-deb:
+    parameters:
+      ubuntu-version:
+        type: string
     docker:
-      - image: cimg/base:stable-20.04
+      - image: cimg/base:stable-<< parameters.ubuntu-version >>
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
@@ -61,11 +66,25 @@ jobs:
       - run: mv ../brainframe-cli*.deb dist/brainframe-cli.deb
       - store_artifacts:
           path: brainframe-cli.deb
-          destination: brainframe-cli.deb
+          destination: brainframe-cli-<< parameters.ubuntu-version >>.deb
       - persist_to_workspace:
           root: .
           paths:
             - dist/*
+
+  test-installation-deb:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run: sudo apt-get update
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: sudo apt-get install /tmp/workspace/dist/brainframe-cli-20.04.deb
+      - run: sudo brainframe install --noninteractive
+      - run: sudo brainframe compose up -d
+      - assert-core-container-running
+      - assert-core-responds-to-http
+      - run: sudo brainframe compose down
 
   upload-to-pypi:
     docker:
@@ -92,20 +111,6 @@ jobs:
       - assert-core-responds-to-http
       - run: sudo $(which poetry) run brainframe compose down
 
-  test-installation-deb:
-    machine:
-      image: ubuntu-2004:202010-01
-    steps:
-      - run: sudo apt-get update
-      - attach_workspace:
-          at: /tmp/workspace
-      - run: sudo apt-get install /tmp/workspace/dist/brainframe-cli.deb
-      - run: sudo brainframe install --noninteractive
-      - run: sudo brainframe compose up -d
-      - assert-core-container-running
-      - assert-core-responds-to-http
-      - run: sudo brainframe compose down
-
 commands:
   install-poetry:
     steps:
@@ -118,7 +123,7 @@ commands:
   assert-core-container-running:
     steps:
       - run:
-          name:
+          name: Check BrainFrame core container is running
           command: |
             until docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core") >/dev/null 2>/dev/null; do
                 sleep 0.1;
@@ -128,7 +133,7 @@ commands:
   assert-core-responds-to-http:
     steps:
       - run:
-          name: Check BrainFrame core service is up
+          name: Check BrainFrame core responds to HTTP requests
           command: |
             until curl -f http://localhost/api/version >/dev/null 2>/dev/null; do
               sleep 0.1;
