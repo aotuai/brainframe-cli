@@ -22,8 +22,9 @@ workflows:
   deb:
     jobs:
       - build-deb:
-          parameters:
-            ubuntu-release: [bionic, focal]
+          matrix:
+            parameters:
+              os: [bionic, focal]
       - test-installation-deb:
           requires:
             - build-deb
@@ -55,9 +56,9 @@ jobs:
 
   build-deb:
     parameters:
-      ubuntu-release:
+      os:
         type: executor
-    executor: << parameters.ubuntu-release >>
+    executor: << parameters.os >>
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
@@ -75,7 +76,7 @@ jobs:
       - run: mv ../brainframe-cli*.deb dist/brainframe-cli.deb
       - store_artifacts:
           path: brainframe-cli.deb
-          destination: brainframe-cli-<< parameters.ubuntu-release >>.deb
+          destination: brainframe-cli-<< parameters.os >>.deb
       - persist_to_workspace:
           root: .
           paths:
