@@ -31,7 +31,9 @@ def main():
     # This environment variable must be set as it is used by the
     # docker-compose.yml to find the data path to volume mount
     if config.data_path.name not in os.environ:
-        os.environ[config.data_path.env_var_name] = str(config.data_path.default)
+        os.environ[config.data_path.env_var_name] = str(
+            config.data_path.default
+        )
 
     args = parser.parse_args(sys.argv[1:2])
 
