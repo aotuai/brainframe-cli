@@ -73,9 +73,9 @@ jobs:
       - run: poetry export --output requirements.txt
       - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
       - run: mkdir dist
-      - run: mv ../brainframe-cli*.deb dist/brainframe-cli.deb
+      - run: mv ../brainframe-cli*.deb dist/brainframe-cli-<< parameters.os >>.deb
       - store_artifacts:
-          path: brainframe-cli.deb
+          path: brainframe-cli-<< parameters.os >>.deb
           destination: brainframe-cli-<< parameters.os >>.deb
       - persist_to_workspace:
           root: .
