@@ -7,10 +7,10 @@ parameters:
 
 
 executors:
-  bionic:
+  focal:
     docker:
       - image: cimg/base:stable-20.04
-  focal:
+  bionic:
     docker:
       - image: cimg/base:stable-18.04
 
