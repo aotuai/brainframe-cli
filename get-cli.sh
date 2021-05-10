@@ -104,7 +104,7 @@ install_on_ubuntu() {
     download_file https://raw.githubusercontent.com/docker/docker-install/master/install.sh /tmp/get-docker.sh
 
     echo ""
-    echo "The get-docker.sh script requires root permissions."
+    echo "[!] Running the get-docker.sh script. This requires root permissions."
     $with_root sh /tmp/get-docker.sh
   fi
 
@@ -123,7 +123,8 @@ install_on_unsupported() {
   fi
 
   if ! group_exists brainframe; then
-    echo "Creating the 'brainframe' group. This requires root permissions."
+    echo ""
+    echo "[!] Creating the 'brainframe' group. This requires root permissions."
     $with_root groupadd brainframe --gid 1337
   fi
 
@@ -131,7 +132,7 @@ install_on_unsupported() {
   download_file "$binary_url" /tmp/brainframe
 
   echo ""
-  echo "The BrainFrame CLI will now be installed. This requires root permissions."
+  echo "[!] The BrainFrame CLI will now be installed. This requires root permissions."
   $with_root cp /tmp/brainframe /usr/local/bin/brainframe && chmod +x /usr/local/bin/brainframe
 }
 
