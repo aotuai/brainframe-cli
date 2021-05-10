@@ -9,7 +9,7 @@ set -o nounset
 # easier for developers and manually deployed machines.
 #
 # WARNING: Please verify that the contents of this script match the version
-#          found on the latest tagged release of the CLI repository,
+#          found on the latest tagged release before running.
 #          https://github.com/aotuai/brainframe-cli
 #
 # Thank you for trying BrainFrame!
