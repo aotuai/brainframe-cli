@@ -154,13 +154,13 @@ def _group_recommendation_message(group: str) -> str:
 
 
 def _get_staging_credentials() -> Tuple[str, str]:
-    username = config.staging_username.get()
-    password = config.staging_password.get()
+    username = config.staging_username.value
+    password = config.staging_password.value
     if username is None or password is None:
         print_utils.fail_translate(
             "general.staging-missing-credentials",
-            username_env_var=config.staging_username.name,
-            password_env_var=config.staging_password.name,
+            username_env_var=config.staging_username.env_var_name,
+            password_env_var=config.staging_password.env_var_name,
         )
 
     # Mypy doesn't understand that fail_translate exits this function, so it

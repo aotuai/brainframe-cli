@@ -164,8 +164,8 @@ jobs:
     steps:
       - run: yum -y install tar gzip
       - attach_workspace:
-          at: /workspace
-      - run: aws s3 cp /workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
+          at: /tmp/workspace
+      - run: aws s3 cp /tmp/workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
       - run: aws cloudfront create-invalidation --distribution-id "$STAGING_CLOUDFRONT_DISTRIBUTION" --paths "/releases/brainframe_cli"
 
   test-installation-binary:
