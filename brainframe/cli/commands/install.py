@@ -122,8 +122,8 @@ def install():
         print_utils.translate("install.set-custom-directory-env-vars")
         print(
             f"\n"
-            f'export {config.install_path.name}="{install_path}"\n'
-            f'export {config.data_path.name}="{data_path}"\n'
+            f'export {config.install_path.env_var_name}="{install_path}"\n'
+            f'export {config.data_path.env_var_name}="{data_path}"\n'
         )
 
 

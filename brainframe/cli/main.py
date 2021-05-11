@@ -11,12 +11,12 @@ from brainframe.cli import (
     config,
     os_utils,
     print_utils,
-    translations,
+    frozen_utils,
 )
 
 
 def main():
-    i18n.load_path.append(str(translations.PATH))
+    i18n.load_path.append(str(frozen_utils.translations_path()))
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")

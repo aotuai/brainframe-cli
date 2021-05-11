@@ -2,13 +2,16 @@
 
 from pathlib import Path
 
-from brainframe.cli.frozen_utils import RELATIVE_TRANSLATIONS_PATH
+from brainframe.cli.frozen_utils import RELATIVE_TRANSLATIONS_PATH, RELATIVE_DEFAULTS_FILE_PATH
 
 if not Path("brainframe").is_dir():
     raise RuntimeError("PyInstaller must be run from the root of the project")
 
 # Package data files in with the executable
-data_files = [("brainframe/cli/defaults.yaml", "brainframe/cli")]
+data_files = [
+    (str(RELATIVE_DEFAULTS_FILE_PATH.absolute()),
+     str(RELATIVE_DEFAULTS_FILE_PATH.parent)),
+]
 for file_ in RELATIVE_TRANSLATIONS_PATH.glob("*.yml"):
     data_files.append((str(file_.absolute()), str(file_.parent)))
 
