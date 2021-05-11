@@ -10,7 +10,7 @@ poetry_result = subprocess.run(
 )
 poetry_output = poetry_result.stdout.strip()
 
-name, version = poetry_output.split(" ")
+name, version = poetry_output.split()
 
 setuptools.setup(
     name=name,
