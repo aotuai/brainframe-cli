@@ -28,6 +28,23 @@ workflows:
       - test-installation-deb:
           requires:
             - build-deb
+  binary:
+    jobs:
+      - build-binary
+      - test-installation-binary:
+          requires:
+            - build-binary
+      - upload-binary:
+          context: aws
+          requires:
+            - test-installation-binary
+          filters:
+            # Ignore any commit on any branch by default
+            branches:
+              ignore: /.*/
+            # Run only when a tag is created
+            tags:
+              only: /^v.+\..+\..+/
   deploy:
     jobs:
       - upload-to-pypi:
@@ -38,11 +55,6 @@ workflows:
             # Run only when a tag is created
             tags:
               only: /^v.+\..+\..+/
-      - build_binary
-      - upload_binary:
-          context: aws
-          requires:
-            - build_binary
   tests:
     jobs:
       - test-installation-source
@@ -66,7 +78,7 @@ jobs:
     executor: << parameters.os >>
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
+      - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs python3-pip
       - run: sudo add-apt-repository ppa:jyrki-pulliainen/dh-virtualenv
       - run: sudo apt-get install -y dh-virtualenv
       - install-poetry
@@ -107,7 +119,6 @@ jobs:
       - image: cimg/python:3.6
     environment:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
-
     steps:
       - checkout
       - run: poetry build
@@ -118,7 +129,7 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install python3 python3-dev curl git -y
+      - run: sudo apt-get -y install python3-pip python3-dev curl git
       - checkout
       - install-poetry
       - run: sudo $(which poetry) install
@@ -128,7 +139,7 @@ jobs:
       - assert-core-responds-to-http
       - run: sudo $(which poetry) run brainframe compose down
 
-  build_binary:
+  build-binary:
     docker:
       # CentOS 7 is the oldest Linux distribution we unofficially support.
       # Building on here allows us to link to a very old version of libc,
@@ -137,18 +148,15 @@ jobs:
     steps:
       - checkout
       - run: yum -y install python3
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-                  | python3 - --version << pipeline.parameters.poetry_version >>"
-      # get-poetry.py doesn't seem to add Poetry to PATH properly on CentOS 7
-      - run: echo 'export PATH=/root/.poetry/bin:$PATH' >> $BASH_ENV
+      - install-poetry
       - run: poetry install --no-root
-      - run: PYTHONPATH=$PYTHONPATH:. poetry run pyinstaller deployment/main.spec
+      - run: PYTHONPATH=$PYTHONPATH:. poetry run pyinstaller package/main.spec
       - persist_to_workspace:
           root: .
           paths:
-            - dist/brainframe
+            - dist/*
 
-  upload_binary:
+  upload-binary:
     docker:
       - image: amazon/aws-cli:2.0.14
     steps:
@@ -158,11 +166,23 @@ jobs:
       - run: aws s3 cp /workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
       - run: aws cloudfront create-invalidation --distribution-id "$STAGING_CLOUDFRONT_DISTRIBUTION" --paths "/releases/brainframe_cli"
 
+  test-installation-binary:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run: sudo apt-get update
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: sudo cp /tmp/workspace/dist/brainframe /usr/local/bin/brainframe
+      - run: sudo brainframe install --noninteractive
+      - run: sudo brainframe compose up -d
+      - assert-core-container-running
+      - assert-core-responds-to-http
+      - run: sudo brainframe compose down
 
 commands:
   install-poetry:
     steps:
-      - run: sudo apt-get update && sudo apt-get install -y python3-pip
       - run: >
           curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
           | python3 - --version << pipeline.parameters.poetry-version >>
