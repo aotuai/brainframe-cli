@@ -1,8 +1,7 @@
 import os
-import subprocess
 import sys
 from pathlib import Path
-from typing import List, TextIO, Tuple, cast, Optional
+from typing import List, Optional, Tuple
 
 import i18n
 import requests
