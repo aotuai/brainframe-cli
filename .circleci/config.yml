@@ -152,7 +152,7 @@ jobs:
       - run: yum -y install python3
       - install-poetry
       - run: poetry install --no-root
-      - run: PYTHONPATH=$PYTHONPATH:. poetry run pyinstaller package/main.spec
+      - run: PYTHONPATH=$PYTHONPATH:. poetry run pyinstaller package/main.spec.py
       - persist_to_workspace:
           root: .
           paths:
