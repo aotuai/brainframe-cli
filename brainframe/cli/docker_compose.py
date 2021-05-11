@@ -1,12 +1,14 @@
 import os
+import subprocess
+import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, TextIO, Tuple, cast, Optional
 
 import i18n
 import requests
 import yaml
 
-from . import env_vars, os_utils, print_utils
+from . import config, os_utils, print_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
@@ -23,7 +25,7 @@ def assert_installed(install_path: Path) -> None:
     if not compose_path.is_file():
         print_utils.fail_translate(
             "general.brainframe-must-be-installed",
-            install_env_var=env_vars.install_path.name,
+            install_env_var=config.install_path.name,
         )
 
 
@@ -32,7 +34,13 @@ def run(install_path: Path, commands: List[str]) -> None:
 
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = ["docker-compose", "--file", str(compose_path)]
+    full_command = [
+        sys.executable,
+        "-m",
+        "compose",
+        "--file",
+        str(compose_path),
+    ]
 
     # Provide the override file if it exists
     compose_override_path = install_path / "docker-compose.override.yml"
@@ -54,13 +62,13 @@ def download(target: Path, version: str = "latest") -> None:
         version = get_latest_version()
 
     credentials: Optional[Tuple[str, str]]
-    if env_vars.is_staging.is_set():
+    if config.is_staging.is_set():
         credentials = _get_staging_credentials()
     else:
         credentials = None
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
-        subdomain="staging." if env_vars.is_staging.is_set() else "",
+        subdomain="staging." if config.is_staging.value else "",
         version=version,
     )
     response = requests.get(url, auth=credentials, stream=True)
@@ -86,9 +94,8 @@ def get_latest_version() -> str:
     # Add the flags to authenticate with staging if the user wants to download
     # from there
     credentials: Optional[Tuple[str, str]]
-    if env_vars.is_staging.is_set():
+    if config.is_staging.value:
         subdomain = "staging."
-        credentials = _get_staging_credentials()
     else:
         subdomain = ""
         credentials = None
@@ -148,13 +155,13 @@ def _group_recommendation_message(group: str) -> str:
 
 
 def _get_staging_credentials() -> Tuple[str, str]:
-    username = env_vars.staging_username.get()
-    password = env_vars.staging_password.get()
+    username = config.staging_username.get()
+    password = config.staging_password.get()
     if username is None or password is None:
         print_utils.fail_translate(
             "general.staging-missing-credentials",
-            username_env_var=env_vars.staging_username.name,
-            password_env_var=env_vars.staging_password.name,
+            username_env_var=config.staging_username.name,
+            password_env_var=config.staging_password.name,
         )
 
     # Mypy doesn't understand that fail_translate exits this function, so it

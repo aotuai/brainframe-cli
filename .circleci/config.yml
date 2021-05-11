@@ -1,17 +1,36 @@
 version: 2.1
 
 parameters:
-  poetry_version:
+  poetry-version:
     type: string
     default: "1.1.4"
+
+
+executors:
+  focal:
+    docker:
+      - image: cimg/base:stable-20.04
+  bionic:
+    docker:
+      - image: cimg/base:stable-18.04
+
 
 workflows:
   lint:
     jobs:
       - lint
+  deb:
+    jobs:
+      - build-deb:
+          matrix:
+            parameters:
+              os: [bionic, focal]
+      - test-installation-deb:
+          requires:
+            - build-deb
   deploy:
     jobs:
-      - upload_to_pypi:
+      - upload-to-pypi:
           filters:
             # Ignore any commit on any branch by default
             branches:
@@ -26,62 +45,89 @@ workflows:
             - build_binary
   tests:
     jobs:
-      - test_installation
+      - test-installation-source
 
 
 jobs:
   lint:
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
     steps:
       - checkout
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry_version >>"
       - run: poetry install --no-root
       - run: poetry run isort --check .
       - run: poetry run black --check .
       - run: poetry run mypy -p "brainframe.cli"
-  upload_to_pypi:
+
+  build-deb:
+    parameters:
+      os:
+        type: executor
+    executor: << parameters.os >>
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs
+      - run: sudo add-apt-repository ppa:jyrki-pulliainen/dh-virtualenv
+      - run: sudo apt-get install -y dh-virtualenv
+      - install-poetry
+      - checkout
+      - run: cp -r package/debian .
+      - run: cp package/setup.py .
+      - run: cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml
+      - run: sudo mk-build-deps --install debian/control
+      - run: poetry export --output requirements.txt
+      - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
+      - run: mkdir dist
+      - run: |
+          export CODENAME=$(lsb_release --codename --short)
+          mv ../brainframe-cli*.deb dist/brainframe-cli-${CODENAME}.deb
+      - store_artifacts:
+          path: dist
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist/*
+
+  test-installation-deb:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - run: sudo apt-get update
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: sudo apt-get install /tmp/workspace/dist/brainframe-cli-focal.deb
+      - run: sudo brainframe install --noninteractive
+      - run: sudo brainframe compose up -d
+      - assert-core-container-running
+      - assert-core-responds-to-http
+      - run: sudo brainframe compose down
+
+  upload-to-pypi:
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.6
     environment:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
+
     steps:
       - checkout
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry_version >>"
       - run: poetry build
       - run: POETRY_HTTP_BASIC_PYPI_PASSWORD=${PYPI_PASSWORD} poetry publish
-  test_installation:
+
+  test-installation-source:
     machine:
       image: ubuntu-2004:202010-01
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install python3 python3-dev curl git -y
       - checkout
-      - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-          | python3 - --version << pipeline.parameters.poetry_version >>"
-      - run: echo "export PATH=$PATH:$HOME/.poetry/bin" >> $BASH_ENV
+      - install-poetry
       - run: sudo $(which poetry) install
       - run: sudo $(which poetry) run brainframe install --noninteractive
       - run: sudo $(which poetry) run brainframe compose up -d
-      - run:
-          name: Check BrainFrame containers are running
-          command: |
-            until docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core") >/dev/null 2>/dev/null; do
-                sleep 0.1;
-            done;
-            echo "BrainFrame core container is running."
-          no_output_timeout: 1m
-      - run:
-          name: Check BrainFrame core service is up
-          command: |
-            until curl -f http://localhost/api/version >/dev/null 2>/dev/null; do
-              sleep 0.1;
-            done;
-            echo "BrainFrame core service is up."
-          no_output_timeout: 1m
+      - assert-core-container-running
+      - assert-core-responds-to-http
       - run: sudo $(which poetry) run brainframe compose down
+
   build_binary:
     docker:
       # CentOS 7 is the oldest Linux distribution we unofficially support.
@@ -92,7 +138,7 @@ jobs:
       - checkout
       - run: yum -y install python3
       - run: "curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
-                | python3 - --version << pipeline.parameters.poetry_version >>"
+                  | python3 - --version << pipeline.parameters.poetry_version >>"
       # get-poetry.py doesn't seem to add Poetry to PATH properly on CentOS 7
       - run: echo 'export PATH=/root/.poetry/bin:$PATH' >> $BASH_ENV
       - run: poetry install --no-root
@@ -101,6 +147,7 @@ jobs:
           root: .
           paths:
             - dist/brainframe
+
   upload_binary:
     docker:
       - image: amazon/aws-cli:2.0.14
@@ -110,3 +157,34 @@ jobs:
           at: /workspace
       - run: aws s3 cp /workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
       - run: aws cloudfront create-invalidation --distribution-id "$STAGING_CLOUDFRONT_DISTRIBUTION" --paths "/releases/brainframe_cli"
+
+
+commands:
+  install-poetry:
+    steps:
+      - run: sudo apt-get update && sudo apt-get install -y python3-pip
+      - run: >
+          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          | python3 - --version << pipeline.parameters.poetry-version >>
+      # Add to the PATH
+      - run: echo 'export PATH=$HOME/.poetry/bin:$PATH' >> $BASH_ENV
+  assert-core-container-running:
+    steps:
+      - run:
+          name: Check BrainFrame core container is running
+          command: |
+            until docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core") >/dev/null 2>/dev/null; do
+                sleep 0.1;
+            done;
+            echo "BrainFrame core container is running."
+          no_output_timeout: 1m
+  assert-core-responds-to-http:
+    steps:
+      - run:
+          name: Check BrainFrame core responds to HTTP requests
+          command: |
+            until curl -f http://localhost/api/version >/dev/null 2>/dev/null; do
+              sleep 0.1;
+            done;
+            echo "BrainFrame core service is up."
+          no_output_timeout: 1m

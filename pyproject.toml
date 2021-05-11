@@ -13,7 +13,7 @@ homepage = "https://github.com/aotuai/brainframe_cli"
 packages = [
     { include = "brainframe/cli/**/*.py" },
 ]
-include = ["brainframe/cli/translations/*"]
+include = ["brainframe/cli/translations/*", "brainframe/cli/defaults.yaml"]
 
 [tool.poetry.dependencies]
 python = ">=3.6,<4.0"
@@ -22,6 +22,7 @@ pyyaml = "^5.3"
 distro = "^1.5"
 packaging = "^20.4"
 requests = "^2.24.0"
+docker-compose = "^1.29.1"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"

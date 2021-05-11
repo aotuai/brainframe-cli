@@ -1,21 +1,22 @@
+#!/usr/bin/env python3
+
 import os
 import signal
 import sys
 from argparse import ArgumentParser
-from pathlib import Path
 
 import i18n
 from brainframe.cli import (
     commands,
-    env_vars,
-    frozen_utils,
+    config,
     os_utils,
     print_utils,
+    translations,
 )
 
 
 def main():
-    i18n.load_path.append(str(frozen_utils.translations_path()))
+    i18n.load_path.append(str(translations.PATH))
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")
@@ -25,10 +26,14 @@ def main():
         "command", default=None, nargs="?", help=i18n.t("portal.command-help")
     )
 
+    config.load()
+
     # This environment variable must be set as it is used by the
     # docker-compose.yml to find the data path to volume mount
-    if not env_vars.data_path.is_set():
-        os.environ[env_vars.data_path.name] = str(env_vars.data_path.default)
+    if config.data_path.env_var_name not in os.environ:
+        os.environ[config.data_path.env_var_name] = str(
+            config.data_path.default
+        )
 
     args = parser.parse_args(sys.argv[1:2])
 
