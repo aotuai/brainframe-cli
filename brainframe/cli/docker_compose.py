@@ -34,9 +34,9 @@ def run(install_path: Path, commands: List[str]) -> None:
     compose_path = install_path / "docker-compose.yml"
 
     full_command = [
-        sys.executable,
-        "-m",
-        "compose",
+        # sys.executable,
+        # "-m",
+        # "compose",
         "--file",
         str(compose_path),
     ]
@@ -51,7 +51,19 @@ def run(install_path: Path, commands: List[str]) -> None:
     if env_path.is_file():
         full_command += ["--env-file", str(env_path)]
 
-    os_utils.run(full_command + commands)
+    def _run_docker_compose(args):
+        sys.argv = ["docker-compose"] + args
+        from compose.cli.main import main
+        main()
+
+    import multiprocessing
+    process = multiprocessing.Process(
+        target=_run_docker_compose,
+        args=(full_command + commands,),
+    )
+    process.start()
+    process.join()
+    # os_utils.run(full_command + commands)
 
 
 def download(target: Path, version: str = "latest") -> None:
