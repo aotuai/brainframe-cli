@@ -145,6 +145,8 @@ jobs:
       # Building on here allows us to link to a very old version of libc,
       # which will work on all more modern distributions.
       - image: centos:7
+    environment:
+      PYTHONIOENCODING: utf8
     steps:
       - checkout
       - run: yum -y install python3
