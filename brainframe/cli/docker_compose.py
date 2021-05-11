@@ -61,7 +61,7 @@ def download(target: Path, version: str = "latest") -> None:
         version = get_latest_version()
 
     credentials: Optional[Tuple[str, str]]
-    if config.is_staging.is_set():
+    if config.is_staging.value:
         credentials = _get_staging_credentials()
     else:
         credentials = None
