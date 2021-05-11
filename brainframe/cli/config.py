@@ -39,11 +39,7 @@ class Option(Generic[T]):
     ) -> None:
         default = defaults.get(self.name)
 
-        value: Optional[str]
-        if self.env_var_name in os.environ:
-            value = os.environ[self.env_var_name]
-        else:
-            value = default
+        value: Optional[str] = os.environ.get(self.env_var_name, default)
 
         self.value = None if value is None else converter(value)
         self.default = None if default is None else converter(default)
