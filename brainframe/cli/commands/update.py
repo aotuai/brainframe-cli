@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import docker_compose, env_vars, print_utils
+from brainframe.cli import config, docker_compose, print_utils
 from packaging import version
 
 from .utils import command, subcommand_parse_args
@@ -11,7 +11,7 @@ from .utils import command, subcommand_parse_args
 def update():
     args = _parse_args()
 
-    install_path = env_vars.install_path.get()
+    install_path = config.install_path.value
 
     docker_compose.assert_installed(install_path)
 

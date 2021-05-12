@@ -1,0 +1,4 @@
+# Defaults used for when the BrainFrame CLI is installed as a system package
+
+install_path: /usr/share/brainframe
+data_path: /var/lib/brainframe

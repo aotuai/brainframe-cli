@@ -1,0 +1,12 @@
+Source: brainframe-cli
+Section: python
+Priority: optional
+Maintainer: Aotu.ai <info@aotu.ai>
+Build-Depends: debhelper (>= 9), python3, dh-virtualenv (>= 1.2)
+Standards-Version: 3.9.5
+
+Package: brainframe-cli
+Architecture: any
+Pre-Depends:
+Depends: python3-distutils, rsync, curl
+Description: A CLI that makes installing and managing a BrainFrame server easy

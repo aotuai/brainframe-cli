@@ -1,12 +1,13 @@
 import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import List, TextIO, Tuple, cast
 
 import i18n
 import yaml
 
-from . import env_vars, os_utils, print_utils
+from . import config, os_utils, print_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
@@ -23,7 +24,7 @@ def assert_installed(install_path: Path) -> None:
     if not compose_path.is_file():
         print_utils.fail_translate(
             "general.brainframe-must-be-installed",
-            install_env_var=env_vars.install_path.name,
+            install_env_var=config.install_path.name,
         )
 
 
@@ -32,7 +33,13 @@ def run(install_path: Path, commands: List[str]) -> None:
 
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = ["docker-compose", "--file", str(compose_path)]
+    full_command = [
+        sys.executable,
+        "-m",
+        "compose",
+        "--file",
+        str(compose_path),
+    ]
 
     # Provide the override file if it exists
     compose_override_path = install_path / "docker-compose.override.yml"
@@ -73,16 +80,16 @@ def check_download_version(
 
     # Add the flags to authenticate with staging if the user wants to download
     # from there
-    if env_vars.is_staging.is_set():
+    if config.is_staging.value:
         subdomain = "staging."
 
-        username = env_vars.staging_username.get()
-        password = env_vars.staging_password.get()
+        username = config.staging_username.value
+        password = config.staging_password.value
         if username is None or password is None:
             print_utils.fail_translate(
                 "general.staging-missing-credentials",
-                username_env_var=env_vars.staging_username.name,
-                password_env_var=env_vars.staging_password.name,
+                username_env_var=config.staging_username.name,
+                password_env_var=config.staging_password.name,
             )
 
         auth_flags = ["--user", f"{username}:{password}"]
