@@ -7,23 +7,23 @@ The BrainFrame CLI is a tool for installing and managing a BrainFrame server.
 Installation
 ------------
 
-The CLI is bundled into a single executable with PyInstaller for easy
-installation. Ubuntu 18.04 and 20.04 are officially supported, but other
-versions of Linux are expected to work as well.
+The CLI is installable with Pip. Ubuntu 18.04 and 20.04 are officially
+supported, but other versions of Linux are expected to work as well.
+
+On Ubuntu:
 
 .. code-block::
 
-    sudo curl -o /usr/local/bin/brainframe -f -L "https://aotu.ai/releases/brainframe_cli/brainframe"
-    sudo chmod +x /usr/local/bin/brainframe
+    sudo -H pip3 install brainframe-cli
 
 Upgrading
 ---------
 
-Just use the self-update command to update to the latest CLI release.
+Pip can be used to upgrade to a new version.
 
 .. code-block::
 
-    sudo brainframe self-update
+    sudo -H pip3 install --upgrade brainframe-cli
 
 Usage
 -----
