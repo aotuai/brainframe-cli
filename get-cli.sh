@@ -122,6 +122,10 @@ install_on_unsupported() {
     >&2 echo "Docker is not installed! Please install Docker and run this script again."
   fi
 
+  if ! command_exists docker-compose; then
+    >&2 echo "Docker Compose is not installed! Please install Docker Compose and run this script again."
+  fi
+
   if ! group_exists brainframe; then
     echo ""
     echo "[!] Creating the 'brainframe' group. This requires root permissions."
