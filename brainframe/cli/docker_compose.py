@@ -1,13 +1,13 @@
 import os
-import subprocess
 import sys
 from pathlib import Path
-from typing import List, TextIO, Tuple, cast
+from typing import List, Optional, Tuple
 
 import i18n
+import requests
 import yaml
 
-from . import config, os_utils, print_utils
+from . import config, frozen_utils, os_utils, print_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
@@ -33,10 +33,19 @@ def run(install_path: Path, commands: List[str]) -> None:
 
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = [
-        sys.executable,
-        "-m",
-        "compose",
+    if frozen_utils.is_frozen():
+        # Rely on the system's Docker Compose, since Compose can't be easily embedded
+        # into a PyInstaller executable
+        full_command = ["docker-compose"]
+    else:
+        # Use the included Docker Compose
+        full_command = [
+            sys.executable,
+            "-m",
+            "compose",
+        ]
+
+    full_command += [
         "--file",
         str(compose_path),
     ]
@@ -57,14 +66,28 @@ def run(install_path: Path, commands: List[str]) -> None:
 def download(target: Path, version: str = "latest") -> None:
     _assert_has_write_permissions(target.parent)
 
-    subdomain, auth_flags, version = check_download_version(version=version)
+    if version == "latest":
+        version = get_latest_version()
+
+    credentials: Optional[Tuple[str, str]]
+    if config.is_staging.value:
+        credentials = _get_staging_credentials()
+    else:
+        credentials = None
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
-        subdomain=subdomain, version=version
+        subdomain="staging." if config.is_staging.value else "",
+        version=version,
     )
-    os_utils.run(
-        ["curl", "-o", str(target), "--fail", "--location", url] + auth_flags,
-    )
+    response = requests.get(url, auth=credentials, stream=True)
+    if not response.ok:
+        print_utils.fail_translate(
+            "general.error-downloading-docker-compose",
+            status_code=response.status_code,
+            error_message=response.text,
+        )
+
+    target.write_text(response.text)
 
     if os_utils.is_root():
         # Fix the permissions of the docker-compose.yml so that the BrainFrame
@@ -72,43 +95,23 @@ def download(target: Path, version: str = "latest") -> None:
         os_utils.give_brainframe_group_rw_access([target])
 
 
-def check_download_version(
-    version: str = "latest",
-) -> Tuple[str, List[str], str]:
-    subdomain = ""
-    auth_flags = []
-
+def get_latest_version() -> str:
+    """
+    :return: The latest available version in the format "vX.Y.Z"
+    """
     # Add the flags to authenticate with staging if the user wants to download
     # from there
+    credentials: Optional[Tuple[str, str]]
     if config.is_staging.value:
         subdomain = "staging."
+    else:
+        subdomain = ""
+        credentials = None
 
-        username = config.staging_username.value
-        password = config.staging_password.value
-        if username is None or password is None:
-            print_utils.fail_translate(
-                "general.staging-missing-credentials",
-                username_env_var=config.staging_username.name,
-                password_env_var=config.staging_password.name,
-            )
-
-        auth_flags = ["--user", f"{username}:{password}"]
-
-    if version == "latest":
-        # Check what the latest version is
-        url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
-        result = os_utils.run(
-            ["curl", "--fail", "-s", "--location", url] + auth_flags,
-            print_command=False,
-            stdout=subprocess.PIPE,
-            encoding="utf-8",
-        )
-        # stdout is a file-like object opened in text mode when the encoding
-        # argument is "utf-8"
-        stdout = cast(TextIO, result.stdout)
-        version = stdout.readline().strip()
-
-    return subdomain, auth_flags, version
+    # Check what the latest version is
+    url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
+    response = requests.get(url, auth=credentials)
+    return response.text
 
 
 def check_existing_version(install_path: Path) -> str:
@@ -157,3 +160,18 @@ def _group_recommendation_message(group: str) -> str:
         # The user is not in the group, so they need to either add
         # themselves or use sudo
         return i18n.t("general.retry-as-root-or-group", group=group)
+
+
+def _get_staging_credentials() -> Tuple[str, str]:
+    username = config.staging_username.value
+    password = config.staging_password.value
+    if username is None or password is None:
+        print_utils.fail_translate(
+            "general.staging-missing-credentials",
+            username_env_var=config.staging_username.env_var_name,
+            password_env_var=config.staging_password.env_var_name,
+        )
+
+    # Mypy doesn't understand that fail_translate exits this function, so it
+    # thinks the return type should be Tuple[Optional[str], Optional[str]]
+    return username, password  # type: ignore

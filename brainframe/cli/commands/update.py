@@ -16,39 +16,28 @@ def update():
     docker_compose.assert_installed(install_path)
 
     if args.version == "latest":
-        _, _, requested_version_str = docker_compose.check_download_version()
+        _, _, requested_version_str = docker_compose.check_existing_version(
+            install_path
+        )
     else:
         requested_version_str = args.version
-
-    existing_version_str = docker_compose.check_existing_version(install_path)
-
-    existing_version = version.parse(existing_version_str)
     requested_version = version.parse(requested_version_str)
 
-    force_downgrade = False
-    if args.noninteractive:
-        # Use the --force flag to decide if downgrades are allowed
-        force_downgrade = args.force
-    else:
-        # Ask the user if downgrades should be allowed
-        if existing_version >= requested_version:
-            force_downgrade = print_utils.ask_yes_no(
-                "update.ask-force-downgrade"
-            )
+    existing_version_str = docker_compose.check_existing_version(install_path)
+    existing_version = version.parse(existing_version_str)
 
-    if not force_downgrade:
-        # Fail if the requested version is not an upgrade
-        if existing_version == requested_version:
-            print_utils.fail_translate(
-                "update.version-already-installed",
-                existing_version=existing_version_str,
-                requested_version=requested_version_str,
-            )
-        elif existing_version > requested_version:
+    if not args.force:
+        if existing_version > requested_version:
             print_utils.fail_translate(
                 "update.downgrade-not-allowed",
                 existing_version=existing_version_str,
-                requested_version=requested_version_str,
+                upgrade_version=requested_version_str,
+            )
+        elif existing_version == requested_version:
+            print_utils.fail_translate(
+                "update.version-already-installed",
+                existing_version=existing_version_str,
+                upgrade_version=requested_version_str,
             )
 
     print_utils.translate(
@@ -59,7 +48,7 @@ def update():
 
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
-    docker_compose.download(docker_compose_path, version=requested_version_str)
+    docker_compose.download(docker_compose_path, version=args.version)
 
     docker_compose.run(install_path, ["pull"])
 

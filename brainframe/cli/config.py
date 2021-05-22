@@ -5,10 +5,7 @@ from typing import Callable, Dict, Generic, Optional, TypeVar, Union
 
 import yaml
 
-from . import print_utils
-
-_DEFAULTS_FILE_PATH = Path(__file__).parent / "defaults.yaml"
-
+from . import frozen_utils, print_utils
 
 T = TypeVar("T")
 
@@ -55,13 +52,12 @@ staging_password = Option[str]("staging_password")
 
 def load() -> None:
     """Initializes configuration options"""
-    if not _DEFAULTS_FILE_PATH.is_file():
-        print_utils.fail_translate(
-            "general.missing-defaults-file",
-            defaults_file_path=_DEFAULTS_FILE_PATH,
-        )
+    try:
+        defaults_file_path = frozen_utils.defaults_file_path()
+    except frozen_utils.ResourceNotFoundError:
+        print_utils.fail_translate("general.missing-defaults-file")
 
-    with _DEFAULTS_FILE_PATH.open("r") as defaults_file:
+    with defaults_file_path.open("r") as defaults_file:
         defaults = yaml.load(defaults_file, Loader=yaml.FullLoader)
 
     install_path.load(Path, defaults)

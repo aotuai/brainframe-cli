@@ -8,5 +8,5 @@ Standards-Version: 3.9.5
 Package: brainframe-cli
 Architecture: any
 Pre-Depends:
-Depends: python3-distutils, rsync, curl
+Depends: python3-distutils, rsync
 Description: A CLI that makes installing and managing a BrainFrame server easy

@@ -30,10 +30,9 @@ def install():
         print()
 
     # Check all dependencies
-    dependencies.curl.ensure(args.noninteractive, args.install_curl)
     dependencies.docker.ensure(args.noninteractive, args.install_docker)
 
-    _, _, download_version = docker_compose.check_download_version()
+    download_version = docker_compose.get_latest_version()
     print_utils.translate("install.install-version", version=download_version)
 
     if not os_utils.added_to_group("docker"):
@@ -123,8 +122,8 @@ def install():
         print_utils.translate("install.set-custom-directory-env-vars")
         print(
             f"\n"
-            f'export {config.install_path.name}="{install_path}"\n'
-            f'export {config.data_path.name}="{data_path}"\n'
+            f'export {config.install_path.env_var_name}="{install_path}"\n'
+            f'export {config.data_path.env_var_name}="{data_path}"\n'
         )
 
 
@@ -155,11 +154,6 @@ def _parse_args():
         "--install-docker",
         action="store_true",
         help=i18n.t("install.install-docker-help"),
-    )
-    parser.add_argument(
-        "--install-curl",
-        action="store_true",
-        help=i18n.t("install.install-curl-help"),
     )
     parser.add_argument(
         "--add-to-group",
