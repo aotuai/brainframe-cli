@@ -153,6 +153,8 @@ jobs:
       - install-poetry
       - run: poetry install --no-root
       - run: PYTHONPATH=$PYTHONPATH:. poetry run pyinstaller package/main.spec
+      - store_artifacts:
+          path: dist
       - persist_to_workspace:
           root: .
           paths:
