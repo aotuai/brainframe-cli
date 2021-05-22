@@ -5,8 +5,7 @@ from typing import Callable, Dict, Generic, Optional, TypeVar, Union
 
 import yaml
 
-from . import print_utils, frozen_utils
-
+from . import frozen_utils, print_utils
 
 T = TypeVar("T")
 

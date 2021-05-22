@@ -9,9 +9,9 @@ import i18n
 from brainframe.cli import (
     commands,
     config,
+    frozen_utils,
     os_utils,
     print_utils,
-    frozen_utils,
 )
 
 

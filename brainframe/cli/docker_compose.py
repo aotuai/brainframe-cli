@@ -7,7 +7,7 @@ import i18n
 import requests
 import yaml
 
-from . import config, os_utils, print_utils, frozen_utils
+from . import config, frozen_utils, os_utils, print_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
