@@ -7,7 +7,7 @@ import i18n
 import requests
 import yaml
 
-from . import config, os_utils, print_utils
+from . import config, os_utils, print_utils, frozen_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
@@ -33,10 +33,19 @@ def run(install_path: Path, commands: List[str]) -> None:
 
     compose_path = install_path / "docker-compose.yml"
 
-    full_command = [
-        # sys.executable,
-        # "-m",
-        # "compose",
+    if frozen_utils.is_frozen():
+        # Rely on the system's Docker Compose, since Compose can't be easily embedded
+        # into a PyInstaller executable
+        full_command = ["docker-compose"]
+    else:
+        # Use the included Docker Compose
+        full_command = [
+            sys.executable,
+            "-m",
+            "compose",
+        ]
+
+    full_command += [
         "--file",
         str(compose_path),
     ]
@@ -51,19 +60,7 @@ def run(install_path: Path, commands: List[str]) -> None:
     if env_path.is_file():
         full_command += ["--env-file", str(env_path)]
 
-    def _run_docker_compose(args):
-        sys.argv = ["docker-compose"] + args
-        from compose.cli.main import main
-        main()
-
-    import multiprocessing
-    process = multiprocessing.Process(
-        target=_run_docker_compose,
-        args=(full_command + commands,),
-    )
-    process.start()
-    process.join()
-    # os_utils.run(full_command + commands)
+    os_utils.run(full_command + commands)
 
 
 def download(target: Path, version: str = "latest") -> None:
