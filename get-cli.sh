@@ -22,7 +22,7 @@ set -o nounset
 #    \ \____/\ \_\\ \__/.\_\\ \_\ \_\ \_\ \_\ \ \_\\ \__/.\_\ \_\ \_\ \_\ \____\
 #     \/___/  \/_/ \/__/\/_/ \/_/\/_/\/_/\/_/  \/_/ \/__/\/_/\/_/\/_/\/_/\/____/
 
-binary_url="https://TODO"
+binary_url="https://aotu.ai/releases/brainframe-cli/brainframe"
 
 with_root=""
 
