@@ -37,7 +37,7 @@ def main():
     )
 
     # Upload the binary
-    s3.meta.client.upload_file(
+    s3.upload_file(
         Filename=str(args.binary_path),
         Bucket=bucket_name,
         Key="/releases/brainframe-cli/brainframe",
