@@ -173,7 +173,7 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - checkout
-      - run: poetry install --no-root
+      - run: poetry install
       - run: poetry run python package/upload_binary.py
 
   test-installation-binary:
