@@ -46,7 +46,7 @@ def self_update():
     current_version = version.parse(version_tag)
     latest_version = _latest_version(prefix, credentials)
 
-    if current_version <= latest_version:
+    if current_version >= latest_version:
         print_utils.fail_translate(
             "self-update.already-up-to-date",
             current_version=current_version,
