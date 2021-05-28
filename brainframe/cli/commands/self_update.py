@@ -3,7 +3,7 @@ import stat
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional, Tuple
 
 import i18n
 import requests
@@ -44,7 +44,7 @@ def self_update():
     binary_url = _BINARY_URL.format(prefix=prefix)
 
     current_version = version.parse(version_tag)
-    latest_version = _latest_version(prefix)
+    latest_version = _latest_version(prefix, credentials)
 
     if current_version <= latest_version:
         print_utils.fail_translate(
@@ -84,9 +84,10 @@ def self_update():
 
 def _latest_version(
     url_prefix: str,
+    credentials: Optional[Tuple[str, str]],
 ) -> Union[version.LegacyVersion, version.Version]:
     latest_tag_url = _LATEST_TAG_URL.format(prefix=url_prefix)
-    response = requests.get(latest_tag_url)
+    response = requests.get(latest_tag_url, auth=credentials)
 
     if not response.ok:
         print_utils.fail_translate(
