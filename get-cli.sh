@@ -27,7 +27,7 @@ binary_url="https://aotu.ai/releases/brainframe-cli/brainframe"
 with_root=""
 
 command_exists() {
-	command -v "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 download_file() {
