@@ -1,7 +1,7 @@
 import os
 from distutils.util import strtobool
 from pathlib import Path
-from typing import Callable, Dict, Generic, Optional, TypeVar, Union
+from typing import Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import yaml
 
@@ -66,6 +66,24 @@ def load() -> None:
     is_staging.load(_bool_converter, defaults)
     staging_username.load(str, defaults)
     staging_password.load(str, defaults)
+
+
+def staging_credentials() -> Optional[Tuple[str, str]]:
+    if not is_staging.value:
+        return None
+
+    username = staging_username.value
+    password = staging_password.value
+    if username is None or password is None:
+        print_utils.fail_translate(
+            "general.staging-missing-credentials",
+            username_env_var=staging_username.env_var_name,
+            password_env_var=staging_password.env_var_name,
+        )
+
+    # Mypy doesn't understand that fail_translate exits this function, so it
+    # thinks the return type should be Tuple[Optional[str], Optional[str]]
+    return username, password  # type: ignore
 
 
 def _bool_converter(value: Union[str, bool]) -> bool:

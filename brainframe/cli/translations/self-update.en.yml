@@ -6,7 +6,12 @@ en:
   mechanism instead."
 
   downloading: "Downloading new version..."
+  error-getting-latest-version: "Error while checking the latest CLI version:
+  HTTP %{status_code} - %{error_message}"
   error-downloading: "Error while downloading the new version: HTTP
   %{status_code} - %{error_message}"
+
+  already-up-to-date: "The CLI is already up-to-date. (Current version:
+  %{current_version}, latest version: %{latest_version})"
 
   complete: "The BrainFrame CLI has been updated!"

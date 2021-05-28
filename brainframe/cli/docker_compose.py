@@ -69,11 +69,7 @@ def download(target: Path, version: str = "latest") -> None:
     if version == "latest":
         version = get_latest_version()
 
-    credentials: Optional[Tuple[str, str]]
-    if config.is_staging.value:
-        credentials = _get_staging_credentials()
-    else:
-        credentials = None
+    credentials = config.staging_credentials()
 
     url = BRAINFRAME_DOCKER_COMPOSE_URL.format(
         subdomain="staging." if config.is_staging.value else "",
@@ -160,18 +156,3 @@ def _group_recommendation_message(group: str) -> str:
         # The user is not in the group, so they need to either add
         # themselves or use sudo
         return i18n.t("general.retry-as-root-or-group", group=group)
-
-
-def _get_staging_credentials() -> Tuple[str, str]:
-    username = config.staging_username.value
-    password = config.staging_password.value
-    if username is None or password is None:
-        print_utils.fail_translate(
-            "general.staging-missing-credentials",
-            username_env_var=config.staging_username.env_var_name,
-            password_env_var=config.staging_password.env_var_name,
-        )
-
-    # Mypy doesn't understand that fail_translate exits this function, so it
-    # thinks the return type should be Tuple[Optional[str], Optional[str]]
-    return username, password  # type: ignore
