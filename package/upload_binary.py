@@ -59,8 +59,8 @@ def main():
             DistributionId=distribution_id,
             InvalidationBatch={
                 "Paths": {
-                    "Quantity": 1,
-                    "Items": ["/releases/brainframe-cli"],
+                    "Quantity": 99,
+                    "Items": ["/releases/brainframe-cli/*"],
                 },
                 "CallerReference": str(uuid.uuid4()),
             },
