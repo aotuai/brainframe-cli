@@ -174,7 +174,7 @@ jobs:
           at: /tmp/workspace
       - checkout
       - run: poetry install
-      - run: poetry run python package/upload_binary.py
+      - run: poetry run python package/upload_binary.py --binary-path /tmp/workspace/dist/brainframe
 
   test-installation-binary:
     machine:

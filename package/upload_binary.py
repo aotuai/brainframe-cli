@@ -2,6 +2,7 @@
 a CloudFront invalidation to make those changes live.
 """
 
+import argparse
 import os
 import sys
 import uuid
@@ -17,15 +18,16 @@ cloudfront = boto3.client("cloudfront")
 
 
 _COMPANY_NAMES = ["aotu", "dilililabs"]
-_BINARY_PATH = Path("dist/brainframe")
 
 
 def main():
     stage = os.environ.get("STAGE", "dev")
 
-    if not _BINARY_PATH.exists():
+    args = _parse_args()
+
+    if not args.binary_path.exists():
         print(
-            f"Missing binary at '{_BINARY_PATH}'. Has a build been run?",
+            f"Missing binary at '{args.binary_path}'. Has a build been run?",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -36,7 +38,7 @@ def main():
 
     # Upload the binary
     s3.meta.client.upload_file(
-        Filename="dist/brainframe",
+        Filename=str(args.binary_path),
         Bucket=bucket_name,
         Key="/releases/brainframe-cli/brainframe",
     )
@@ -63,6 +65,21 @@ def main():
                 "CallerReference": str(uuid.uuid4()),
             },
         )
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Uploads the PyInstaller binary to the releases bucket and makes "
+        "the change live"
+    )
+    parser.add_argument(
+        "--binary-path",
+        help="A path to the binary to upload",
+        type=Path,
+        default=Path("dist/brainframe"),
+    )
+
+    return parser.parse_args()
 
 
 def _get_parameter(name: str) -> str:
