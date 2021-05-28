@@ -40,7 +40,7 @@ def main():
     s3.upload_file(
         Filename=str(args.binary_path),
         Bucket=bucket_name,
-        Key="/releases/brainframe-cli/brainframe",
+        Key="releases/brainframe-cli/brainframe",
     )
 
     # Upload a latest tag, containing the latest version number
@@ -48,7 +48,7 @@ def main():
     s3.upload_fileobj(
         Fileobj=version_tag_file,
         Bucket=bucket_name,
-        Key="/releases/brainframe-cli/latest",
+        Key="releases/brainframe-cli/latest",
     )
 
     for company_name in _COMPANY_NAMES:
