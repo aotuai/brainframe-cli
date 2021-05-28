@@ -34,10 +34,14 @@ workflows:
       - test-installation-binary:
           requires:
             - build-binary
-      - upload-binary:
-          context: aws
+      - upload-binary-staging:
+          context: aws-staging
           requires:
             - test-installation-binary
+      - upload-binary-production:
+          context: aws
+          requires:
+            - upload-binary-staging
           filters:
             # Ignore any commit on any branch by default
             branches:
@@ -162,13 +166,13 @@ jobs:
 
   upload-binary:
     docker:
-      - image: amazon/aws-cli:2.0.14
+      - image: cimg/python:3.6
     steps:
-      - run: yum -y install tar gzip
       - attach_workspace:
           at: /tmp/workspace
-      - run: aws s3 cp /tmp/workspace/dist/brainframe s3://brainframe-releases-staging/releases/brainframe_cli/brainframe
-      - run: aws cloudfront create-invalidation --distribution-id "$STAGING_CLOUDFRONT_DISTRIBUTION" --paths "/releases/brainframe_cli"
+      - checkout
+      - run: poetry install --no-root
+      - run: poetry run python package/upload_binary.py
 
   test-installation-binary:
     machine:
