@@ -34,11 +34,13 @@ workflows:
       - test-installation-binary:
           requires:
             - build-binary
-      - upload-binary-staging:
+      - upload-binary:
+          name: upload-binary-staging
           context: aws-staging
           requires:
             - test-installation-binary
-      - upload-binary-production:
+      - upload-binary:
+          name: upload-binary-production
           context: aws
           requires:
             - upload-binary-staging
