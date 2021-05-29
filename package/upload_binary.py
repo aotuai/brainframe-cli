@@ -10,7 +10,7 @@ from io import BytesIO
 from pathlib import Path
 
 import boto3
-from brainframe.cli import version_tag
+from brainframe.cli import __version__
 
 ssm = boto3.client("ssm")
 s3 = boto3.client("s3")
@@ -44,7 +44,7 @@ def main():
     )
 
     # Upload a latest tag, containing the latest version number
-    version_tag_file = BytesIO(version_tag.encode("utf-8"))
+    version_tag_file = BytesIO(__version__.encode("utf-8"))
     s3.upload_fileobj(
         Fileobj=version_tag_file,
         Bucket=bucket_name,

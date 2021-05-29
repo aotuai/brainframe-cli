@@ -7,7 +7,7 @@ from typing import Optional, Tuple, Union
 
 import i18n
 import requests
-from brainframe.cli import config, frozen_utils, print_utils, version_tag
+from brainframe.cli import config, frozen_utils, print_utils, __version__
 from packaging import version
 
 from .utils import command
@@ -43,7 +43,7 @@ def self_update():
     )
     binary_url = _BINARY_URL.format(prefix=prefix)
 
-    current_version = version.parse(version_tag)
+    current_version = version.parse(__version__)
     latest_version = _latest_version(prefix, credentials)
 
     if current_version >= latest_version:
