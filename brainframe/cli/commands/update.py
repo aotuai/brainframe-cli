@@ -37,6 +37,7 @@ def update():
             )
 
     if not force_downgrade:
+        # Fail if the requested version is not an upgrade
         if existing_version == requested_version:
             print_utils.fail_translate(
                 "update.version-already-installed",
