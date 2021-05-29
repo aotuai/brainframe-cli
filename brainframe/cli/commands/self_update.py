@@ -7,7 +7,7 @@ from typing import Optional, Tuple, Union
 
 import i18n
 import requests
-from brainframe.cli import config, frozen_utils, print_utils, __version__
+from brainframe.cli import __version__, config, frozen_utils, print_utils
 from packaging import version
 
 from .utils import command

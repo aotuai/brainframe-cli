@@ -26,7 +26,9 @@ def main():
     args = _parse_args()
 
     if not args.binary_path.exists():
-        message = f"Missing binary at '{args.binary_path}'. Has a build been run?"
+        message = (
+            f"Missing binary at '{args.binary_path}'. Has a build been run?"
+        )
         print(message, file=sys.stderr)
         sys.exit(1)
 
