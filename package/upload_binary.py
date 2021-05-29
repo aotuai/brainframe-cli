@@ -26,10 +26,8 @@ def main():
     args = _parse_args()
 
     if not args.binary_path.exists():
-        print(
-            f"Missing binary at '{args.binary_path}'. Has a build been run?",
-            file=sys.stderr,
-        )
+        message = f"Missing binary at '{args.binary_path}'. Has a build been run?"
+        print(message, file=sys.stderr)
         sys.exit(1)
 
     bucket_name = _get_parameter(
