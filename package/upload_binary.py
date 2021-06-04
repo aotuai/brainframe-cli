@@ -11,6 +11,7 @@ from pathlib import Path
 
 import boto3
 from brainframe.cli import __version__
+from brainframe.cli.print_utils import fail
 
 ssm = boto3.client("ssm")
 s3 = boto3.client("s3")
@@ -26,11 +27,7 @@ def main():
     args = _parse_args()
 
     if not args.binary_path.exists():
-        message = (
-            f"Missing binary at '{args.binary_path}'. Has a build been run?"
-        )
-        print(message, file=sys.stderr)
-        sys.exit(1)
+        fail(f"Missing binary at '{args.binary_path}'. Has a build been run?")
 
     bucket_name = _get_parameter(
         f"/content-delivery/bucket/releases/{stage}/bucket-name"
