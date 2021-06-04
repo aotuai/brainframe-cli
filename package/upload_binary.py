@@ -4,7 +4,6 @@ a CloudFront invalidation to make those changes live.
 
 import argparse
 import os
-import sys
 import uuid
 from io import BytesIO
 from pathlib import Path
