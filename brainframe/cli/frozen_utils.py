@@ -13,13 +13,10 @@ RELATIVE_TRANSLATIONS_PATH = Path("brainframe/cli/translations")
 RELATIVE_DEFAULTS_FILE_PATH = Path("brainframe/cli/defaults.yaml")
 
 
-class ResourceNotFoundError(Exception):
-    pass
-
-
 def defaults_file_path() -> Path:
     """
     :return: A path to the included defaults file
+    :raises FileNotFoundError: If the defaults file is not present
     """
     if is_frozen():
         return _pyinstaller_tmp_path() / RELATIVE_DEFAULTS_FILE_PATH
@@ -30,6 +27,7 @@ def defaults_file_path() -> Path:
 def translations_path() -> Path:
     """
     :return: A path to the folder with the translation files
+    :raises FileNotFoundError: If the defaults file is not present
     """
     if is_frozen():
         return _pyinstaller_tmp_path() / RELATIVE_TRANSLATIONS_PATH
@@ -49,7 +47,7 @@ def _find_resource_location(target: Path) -> Path:
         if (parent / target).exists():
             return parent / target
 
-    raise ResourceNotFoundError()
+    raise FileNotFoundError()
 
 
 def _pyinstaller_tmp_path() -> Path:

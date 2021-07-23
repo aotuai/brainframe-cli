@@ -54,7 +54,7 @@ def load() -> None:
     """Initializes configuration options"""
     try:
         defaults_file_path = frozen_utils.defaults_file_path()
-    except frozen_utils.ResourceNotFoundError:
+    except FileNotFoundError:
         print_utils.fail_translate("general.missing-defaults-file")
 
     with defaults_file_path.open("r") as defaults_file:
