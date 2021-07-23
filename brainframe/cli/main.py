@@ -16,7 +16,11 @@ from brainframe.cli import (
 
 
 def main():
-    i18n.load_path.append(str(frozen_utils.translations_path()))
+    try:
+        translations_path = frozen_utils.translations_path()
+    except FileNotFoundError:
+        print_utils.fail_translate("general.missing-translations-file")
+    i18n.load_path.append(str(translations_path))
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")
