@@ -22,7 +22,7 @@ def defaults_file_path() -> Path:
     :return: A path to the included defaults file
     """
     if is_frozen():
-        return getattr(sys, "_MEIPASS") / RELATIVE_DEFAULTS_FILE_PATH
+        return _pyinstaller_tmp_path() / RELATIVE_DEFAULTS_FILE_PATH
     else:
         return _find_resource_location(RELATIVE_DEFAULTS_FILE_PATH)
 
@@ -32,7 +32,7 @@ def translations_path() -> Path:
     :return: A path to the folder with the translation files
     """
     if is_frozen():
-        return getattr(sys, "_MEIPASS") / RELATIVE_TRANSLATIONS_PATH
+        return _pyinstaller_tmp_path() / RELATIVE_TRANSLATIONS_PATH
     else:
         return _find_resource_location(RELATIVE_TRANSLATIONS_PATH)
 
@@ -50,3 +50,8 @@ def _find_resource_location(target: Path) -> Path:
             return parent / target
 
     raise ResourceNotFoundError()
+
+
+def _pyinstaller_tmp_path() -> Path:
+    # _MEIPASS is an attribute defined by PyInstaller at runtime
+    return Path(sys._MEIPASS)  # type: ignore[attr-defined]
