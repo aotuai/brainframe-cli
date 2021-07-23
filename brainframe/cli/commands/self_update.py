@@ -1,8 +1,10 @@
 import os
+import shutil
 import stat
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Optional, Tuple, Union
 
 import i18n
@@ -63,18 +65,21 @@ def self_update():
             error_message=response.text,
         )
 
-    # Overwrite the existing executable with the new one
-    os.remove(executable_path)
-    with executable_path.open("wb") as file_:
+    with NamedTemporaryFile("wb") as new_executable:
         for block in response.iter_content(_BLOCK_SIZE):
-            file_.write(block)
+            new_executable.write(block)
+        new_executable.flush()
 
-    # Set the result as executable
-    current_stat = os.stat(executable_path)
-    os.chmod(
-        executable_path,
-        current_stat.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
-    )
+        # Set the result as executable
+        current_stat = os.stat(executable_path)
+        os.chmod(
+            executable_path,
+            current_stat.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
+        )
+
+        # Overwrite the existing executable with the new one
+        # Really excited for copy3, coming this summer
+        shutil.copy2(new_executable.name, executable_path)
 
     print()
     print_utils.translate(
