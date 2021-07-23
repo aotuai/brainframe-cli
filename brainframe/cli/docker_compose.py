@@ -97,12 +97,8 @@ def get_latest_version() -> str:
     """
     # Add the flags to authenticate with staging if the user wants to download
     # from there
-    credentials: Optional[Tuple[str, str]]
-    if config.is_staging.value:
-        subdomain = "staging."
-    else:
-        subdomain = ""
-        credentials = None
+    subdomain = "staging." if config.is_staging.value else ""
+    credentials = config.staging_credentials()
 
     # Check what the latest version is
     url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
