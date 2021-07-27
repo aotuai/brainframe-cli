@@ -71,10 +71,9 @@ def self_update():
         new_executable.flush()
 
         # Set the result as executable
-        current_stat = os.stat(executable_path)
-        os.chmod(
-            executable_path,
-            current_stat.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH,
+        current_stat = executable_path.stat()
+        executable_path.chmod(
+            current_stat.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         )
 
         # Overwrite the existing executable with the new one
