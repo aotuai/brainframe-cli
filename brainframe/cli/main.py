@@ -19,7 +19,12 @@ def main():
     try:
         translations_path = frozen_utils.translations_path()
     except FileNotFoundError:
-        print_utils.fail_translate("general.missing-translations-file")
+        # This message isn't translated because we don't have access to the translations
+        # file to get the translation
+        print_utils.fail(
+            "This distribution is missing a translations file. Please re-install the "
+            "latest version of the BrainFrame CLI and try again."
+        )
     i18n.load_path.append(str(translations_path))
 
     parser = ArgumentParser(

@@ -31,7 +31,5 @@ en:
   unexpected-group-for-file: "File \"%{path}\" is not owned by the
   \"%{group}\" group, but probably should be. Please add this file to the group
   or try again as root."
-  missing-translations-file: "This distribution is missing a translations file.
-  Please re-install the latest version of the BrainFrame CLI and try again."
   missing-defaults-file: "This distribution is missing a defaults file. Please
   re-install the latest version of the BrainFrame CLI and try again."

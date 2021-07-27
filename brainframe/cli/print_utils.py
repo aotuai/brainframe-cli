@@ -3,6 +3,7 @@ import readline
 import sys
 from enum import Enum
 from pathlib import Path
+from typing import NoReturn
 
 import i18n
 
@@ -72,11 +73,11 @@ def warning_translate(message_id, color=Color.YELLOW, **kwargs):
     print_color(i18n.t(message_id, **kwargs), color)
 
 
-def fail_translate(message_id, **kwargs):
+def fail_translate(message_id, **kwargs) -> NoReturn:
     fail(i18n.t(message_id, **kwargs))
 
 
-def fail(message, **kwargs):
+def fail(message, **kwargs) -> NoReturn:
     print_color(message, Color.RED, file=sys.stderr, **kwargs)
     sys.exit(1)
 
