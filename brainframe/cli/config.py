@@ -52,12 +52,10 @@ staging_password = Option[str]("staging_password")
 
 def load() -> None:
     """Initializes configuration options"""
-    try:
-        defaults_file_path = frozen_utils.defaults_file_path()
-    except FileNotFoundError:
+    if not frozen_utils.DEFAULTS_FILE_PATH.exists():
         print_utils.fail_translate("general.missing-defaults-file")
 
-    with defaults_file_path.open("r") as defaults_file:
+    with frozen_utils.DEFAULTS_FILE_PATH.open("r") as defaults_file:
         defaults = yaml.load(defaults_file, Loader=yaml.FullLoader)
 
     install_path.load(Path, defaults)
