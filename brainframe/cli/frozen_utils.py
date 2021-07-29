@@ -33,5 +33,7 @@ def _pyinstaller_tmp_path() -> Path:
     return Path(sys._MEIPASS)  # type: ignore[attr-defined]
 
 
-TRANSLATIONS_PATH = _get_absolute_path("brainframe/cli/translations")
-DEFAULTS_FILE_PATH = _get_absolute_path("brainframe/cli/defaults.yaml")
+RELATIVE_TRANSLATIONS_PATH = Path("brainframe/cli/translations")
+TRANSLATIONS_PATH = _get_absolute_path(RELATIVE_TRANSLATIONS_PATH)
+RELATIVE_DEFAULTS_FILE_PATH = Path("brainframe/cli/defaults.yaml")
+DEFAULTS_FILE_PATH = _get_absolute_path(RELATIVE_DEFAULTS_FILE_PATH)
