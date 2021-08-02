@@ -19,7 +19,7 @@ def _get_absolute_path(*args: Union[str, Path]) -> Path:
     if is_frozen():
         path = Path(_pyinstaller_tmp_path(), *args)
 
-        if not path.is_file():
+        if not path.exists():
             raise RuntimeError(f"Missing resource in PyInstaller bundle: {args}")
 
         return path
