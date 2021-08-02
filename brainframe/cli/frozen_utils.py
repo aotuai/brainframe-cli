@@ -20,7 +20,9 @@ def _get_absolute_path(*args: Union[str, Path]) -> Path:
         path = Path(_pyinstaller_tmp_path(), *args)
 
         if not path.exists():
-            raise RuntimeError(f"Missing resource in PyInstaller bundle: {args}")
+            raise RuntimeError(
+                f"Missing resource in PyInstaller bundle: {args}"
+            )
 
         return path
     else:
@@ -29,7 +31,9 @@ def _get_absolute_path(*args: Union[str, Path]) -> Path:
             if path.exists():
                 return path
 
-        raise RuntimeError(f"Could not find the absolute path for resource: {args}")
+        raise RuntimeError(
+            f"Could not find the absolute path for resource: {args}"
+        )
 
 
 def _pyinstaller_tmp_path() -> Path:
