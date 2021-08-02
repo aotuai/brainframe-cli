@@ -16,13 +16,6 @@ from brainframe.cli import (
 
 
 def main():
-    if not frozen_utils.TRANSLATIONS_PATH.exists():
-        # This message isn't translated because we don't have access to the translations
-        # file to get the translation
-        print_utils.fail(
-            "This distribution is missing a translations file. Please re-install the "
-            "latest version of the BrainFrame CLI and try again."
-        )
     i18n.load_path.append(str(frozen_utils.TRANSLATIONS_PATH))
 
     parser = ArgumentParser(

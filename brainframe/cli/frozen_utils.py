@@ -17,15 +17,19 @@ def _get_absolute_path(*args: Union[str, Path]) -> Path:
     :return: The absolute path of the resource
     """
     if is_frozen():
-        return Path(_pyinstaller_tmp_path(), *args)
+        path = Path(_pyinstaller_tmp_path(), *args)
+
+        if not path.is_file():
+            raise RuntimeError(f"Missing resource in PyInstaller bundle: {args}")
+
+        return path
     else:
         for parent in Path(__file__).absolute().parents:
             path = Path(parent, *args)
             if path.exists():
                 return path
 
-        # Give up and return the relative path
-        return Path(*args)
+        raise RuntimeError(f"Could not find the absolute path for resource: {args}")
 
 
 def _pyinstaller_tmp_path() -> Path:
