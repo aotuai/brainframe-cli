@@ -1,3 +1,4 @@
+import shutil
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -6,6 +7,7 @@ from brainframe.cli import (
     config,
     dependencies,
     docker_compose,
+    frozen_utils,
     os_utils,
     print_utils,
 )
@@ -31,6 +33,11 @@ def install():
 
     # Check all dependencies
     dependencies.docker.ensure(args.noninteractive, args.install_docker)
+    # We only require the Docker Compose command in frozen distributions
+    if frozen_utils.is_frozen() and shutil.which("docker-compose") is None:
+        print_utils.fail_translate(
+            "install.install-dependency-manually", dependency="docker-compose",
+        )
 
     download_version = docker_compose.get_latest_version()
     print_utils.translate("install.install-version", version=download_version)
