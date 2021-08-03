@@ -9,14 +9,14 @@ import i18n
 from brainframe.cli import (
     commands,
     config,
+    frozen_utils,
     os_utils,
     print_utils,
-    translations,
 )
 
 
 def main():
-    i18n.load_path.append(str(translations.PATH))
+    i18n.load_path.append(str(frozen_utils.TRANSLATIONS_PATH))
 
     parser = ArgumentParser(
         description=i18n.t("portal.description"), usage=i18n.t("portal.usage")

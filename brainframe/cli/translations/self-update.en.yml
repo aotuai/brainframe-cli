@@ -1,0 +1,17 @@
+en:
+  description: "Updates the BrainFrame CLI to a new version"
+  usage: "brainframe self-update"
+  not-frozen: "The self-update command is only used for binary installations.
+  If you installed the BrainFrame CLI through a package manager, use its update
+  mechanism instead."
+
+  downloading: "Downloading new version..."
+  error-getting-latest-version: "Error while checking the latest CLI version:
+  HTTP %{status_code} - %{error_message}"
+  error-downloading: "Error while downloading the new version: HTTP
+  %{status_code} - %{error_message}"
+
+  already-up-to-date: "The CLI is already up-to-date. (Current version:
+  %{current_version}, latest version: %{latest_version})"
+
+  complete: "The BrainFrame CLI has been updated!"

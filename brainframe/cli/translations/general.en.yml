@@ -4,6 +4,8 @@ en:
   invalid-yes-no-input: "Please enter either a \"y\" or an \"n\"."
   default: "Default"
   downloading-docker-compose: "Downloading docker-compose.yml..."
+  error-downloading-docker-compose: "Error while downloading
+  docker-compose.yml: HTTP %{status_code} - %{error_message}"
   noninteractive-help: "Prevents this command from prompting for input and
   pulls configuration from flags instead. This can be useful for scripts."
   adding-to-group: "Adding user to the %{group} group"
@@ -21,6 +23,7 @@ en:
   restart-for-group-access: "Your user has been added to the \"%{group}\"
   group but you must restart to apply this change. Alternatively, you can try
   again as root."
+  retry-as-root: "Please try again as root."
   retry-as-root-or-group: "Please try again as root or consider adding your
   user to the \"%{group}\" group."
   file-bad-write-permissions: "Your user does not have write access to
@@ -28,6 +31,5 @@ en:
   unexpected-group-for-file: "File \"%{path}\" is not owned by the
   \"%{group}\" group, but probably should be. Please add this file to the group
   or try again as root."
-  missing-defaults-file: "This distribution is missing a defaults file,
-  expected at \"%{defaults_file_path}\". Please try re-installing the latest
-  version of the BrainFrame CLI and trying again."
+  missing-defaults-file: "This distribution is missing a defaults file. Please
+  re-install the latest version of the BrainFrame CLI and try again."

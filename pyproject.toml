@@ -2,7 +2,7 @@
 name = "brainframe-cli"
 version = "0.2.0"
 license = "BSD-3-Clause"
-authors = ["Aotu <info@aotu.ai>"]
+authors = ["Aotu.ai <info@aotu.ai>"]
 
 description = "Makes installing and managing a BrainFrame server easy"
 readme = "README.rst"
@@ -21,12 +21,15 @@ python-i18n = "^0.3"
 pyyaml = "^5.3"
 distro = "^1.5"
 packaging = "^20.4"
+requests = "^2.24.0"
 docker-compose = "^1.29.1"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
 mypy = "*"
+pyinstaller = "^4.0"
 isort = "^5.6"
+boto3 = "^1.17.83"
 
 [tool.poetry.scripts]
 brainframe = "brainframe.cli.main:main"
