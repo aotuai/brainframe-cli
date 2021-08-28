@@ -2,15 +2,15 @@ import shutil
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import docker_compose, env_vars, os_utils, print_utils
+from brainframe.cli import config, docker_compose, os_utils, print_utils
 
 from .utils import command, subcommand_parse_args
 
 
 @command("uninstall")
 def uninstall():
-    install_path = env_vars.install_path.get()
-    data_path = env_vars.data_path.get()
+    install_path = config.install_path.value
+    data_path = config.data_path.value
 
     args = _parse_args()
 
