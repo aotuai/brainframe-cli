@@ -14,9 +14,8 @@ def uninstall():
 
     args = _parse_args()
 
-    # This command has to be run as root so that the "brainframe" group can be
-    # deleted, and because some BrainFrame services write files as the root
-    # user.
+    # This command has to be run as root because some BrainFrame services write files
+    # as the root user.
     if not os_utils.is_root():
         print_utils.fail_translate("general.user-not-root")
 
@@ -37,8 +36,6 @@ def uninstall():
     shutil.rmtree(install_path)
     print_utils.translate("uninstall.deleting-data-path")
     shutil.rmtree(data_path)
-    print_utils.translate("uninstall.deleting-group")
-    os_utils.delete_group("brainframe")
 
     print()
     print_utils.translate("uninstall.complete", color=print_utils.Color.GREEN)

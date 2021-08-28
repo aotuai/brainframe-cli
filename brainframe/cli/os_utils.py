@@ -20,7 +20,8 @@ current_command = None
 
 def create_group(group_name: str, group_id: int):
     # Check if the group exists
-    if _group_exists(group_name):
+    result = run(["getent", "group", group_name], exit_on_failure=False)
+    if result.returncode == 0:
         print_utils.translate("install.group-exists")
         return
 
@@ -29,18 +30,6 @@ def create_group(group_name: str, group_id: int):
     if result.returncode != 0:
         print_utils.fail_translate(
             "install.create-group-failure", error=str(result.stderr)
-        )
-
-
-def delete_group(group_name: str) -> None:
-    if not _group_exists(group_name):
-        print_utils.translate("uninstall.group-already-deleted")
-        return
-
-    result = run(["groupdel", group_name])
-    if result.returncode != 0:
-        print_utils.fail_translate(
-            "uninstall.delete-group-failure", error=str(result.stderr)
         )
 
 
@@ -138,8 +127,3 @@ def is_supported() -> bool:
     name, version, _ = distro.linux_distribution()
 
     return name in _SUPPORTED_DISTROS and version in _SUPPORTED_DISTROS[name]
-
-
-def _group_exists(group_name: str) -> bool:
-    result = run(["getent", "group", group_name], exit_on_failure=False)
-    return result.returncode == 0
