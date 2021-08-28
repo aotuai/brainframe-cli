@@ -5,9 +5,9 @@ from pathlib import Path
 
 import i18n
 from brainframe.cli import (
+    config,
     dependencies,
     docker_compose,
-    env_vars,
     os_utils,
     print_utils,
 )
@@ -19,8 +19,8 @@ BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
 @command("backup")
 def backup():
-    install_path = env_vars.install_path.get()
-    data_path = env_vars.data_path.get()
+    install_path = config.install_path.value
+    data_path = config.data_path.value
 
     args = _parse_args(data_path)
 

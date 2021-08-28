@@ -1,6 +1,14 @@
+# Tooling
 .mypy_cache/
-dist/
+
+# IDEs
 .idea/
+
+# Python
 __pycache__
 *.pyc
 *.egg-info/
+
+# PyInstaller
+dist/
+build/

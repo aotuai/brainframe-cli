@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import docker_compose, env_vars, print_utils
+from brainframe.cli import config, docker_compose, print_utils
 from packaging import version
 
 from .utils import command, subcommand_parse_args
@@ -11,12 +11,14 @@ from .utils import command, subcommand_parse_args
 def update():
     args = _parse_args()
 
-    install_path = env_vars.install_path.get()
+    install_path = config.install_path.value
 
     docker_compose.assert_installed(install_path)
 
     if args.version == "latest":
-        _, _, requested_version_str = docker_compose.check_download_version()
+        requested_version_str = docker_compose.check_existing_version(
+            install_path
+        )
     else:
         requested_version_str = args.version
 
@@ -25,7 +27,19 @@ def update():
     existing_version = version.parse(existing_version_str)
     requested_version = version.parse(requested_version_str)
 
-    if not args.force:
+    force_downgrade = False
+    if args.noninteractive:
+        # Use the --force flag to decide if downgrades are allowed
+        force_downgrade = args.force
+    else:
+        # Ask the user if downgrades should be allowed
+        if existing_version >= requested_version:
+            force_downgrade = print_utils.ask_yes_no(
+                "update.ask-force-downgrade"
+            )
+
+    if not force_downgrade:
+        # Fail if the requested version is not an upgrade
         if existing_version == requested_version:
             print_utils.fail_translate(
                 "update.version-already-installed",
