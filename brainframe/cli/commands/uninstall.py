@@ -21,10 +21,22 @@ def uninstall():
 
     docker_compose.assert_installed(install_path)
 
+    if args.noninteractive:
+        delete_data = args.delete_data
+    else:
+        delete_data = print_utils.ask_yes_no("uninstall.ask-delete-data")
+
     if not args.noninteractive:
+        directories_to_delete = [str(install_path)]
+        if delete_data:
+            print_utils.warning_translate("uninstall.warning-with-delete-data")
+            directories_to_delete.append(str(data_path))
+        else:
+            print_utils.warning_translate("uninstall.warning")
+
         print_utils.warning_translate(
-            "uninstall.warning",
-            directories=[str(install_path), str(data_path)],
+            "uninstall.directories-deleted",
+            directories=directories_to_delete,
         )
         confirmed = print_utils.ask_yes_no("uninstall.ask-confirm")
         if not confirmed:
@@ -34,8 +46,9 @@ def uninstall():
     docker_compose.run(install_path, ["down", "--rmi", "all"])
     print_utils.translate("uninstall.deleting-install-path")
     shutil.rmtree(install_path)
-    print_utils.translate("uninstall.deleting-data-path")
-    shutil.rmtree(data_path)
+    if delete_data:
+        print_utils.translate("uninstall.deleting-data-path")
+        shutil.rmtree(data_path)
 
     print()
     print_utils.translate("uninstall.complete", color=print_utils.Color.GREEN)
@@ -51,6 +64,12 @@ def _parse_args():
         "--noninteractive",
         action="store_true",
         help=i18n.t("general.noninteractive-help"),
+    )
+
+    parser.add_argument(
+        "--delete-data",
+        action="store_true",
+        help=i18n.t("uninstall.delete-data-help"),
     )
 
     return subcommand_parse_args(parser)
