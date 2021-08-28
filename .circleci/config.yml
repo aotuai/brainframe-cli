@@ -118,7 +118,7 @@ jobs:
       - run: sudo brainframe compose up -d
       - assert-core-container-running
       - assert-core-responds-to-http
-      - run: sudo brainframe compose down
+      - run: sudo brainframe uninstall --noninteractive
 
   upload-to-pypi:
     docker:
@@ -143,7 +143,7 @@ jobs:
       - run: sudo $(which poetry) run brainframe compose up -d
       - assert-core-container-running
       - assert-core-responds-to-http
-      - run: sudo $(which poetry) run brainframe compose down
+      - run: sudo $(which poetry) run brainframe uninstall --noninteractive
 
   build-binary:
     docker:
@@ -188,7 +188,7 @@ jobs:
       - run: sudo brainframe compose up -d
       - assert-core-container-running
       - assert-core-responds-to-http
-      - run: sudo brainframe compose down
+      - run: sudo brainframe uninstall --noninteractive
 
 commands:
   install-poetry:
