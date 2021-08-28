@@ -35,8 +35,7 @@ def uninstall():
             print_utils.warning_translate("uninstall.warning")
 
         print_utils.warning_translate(
-            "uninstall.directories-deleted",
-            directories=directories_to_delete,
+            "uninstall.directories-deleted", directories=directories_to_delete,
         )
         confirmed = print_utils.ask_yes_no("uninstall.ask-confirm")
         if not confirmed:
