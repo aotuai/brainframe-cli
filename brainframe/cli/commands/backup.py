@@ -12,22 +12,18 @@ from brainframe.cli import (
     print_utils,
 )
 
-from .utils import command, subcommand_parse_args
+from .utils import command, subcommand_parse_args, requires_root
 
 BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
 
 @command("backup")
+@requires_root  # Some BrainFrame services write files as root
 def backup():
     install_path = config.install_path.value
     data_path = config.data_path.value
 
     args = _parse_args(data_path)
-
-    # This command has to be run as root for now because some BrainFrame
-    # services write files as the root user.
-    if not os_utils.is_root():
-        print_utils.fail_translate("general.user-not-root")
 
     docker_compose.assert_installed(install_path)
 
