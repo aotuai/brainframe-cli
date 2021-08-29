@@ -12,7 +12,7 @@ from brainframe.cli import (
     print_utils,
 )
 
-from .utils import command, subcommand_parse_args, requires_root
+from .utils import command, requires_root, subcommand_parse_args
 
 BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 

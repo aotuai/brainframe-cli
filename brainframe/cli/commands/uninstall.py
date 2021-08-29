@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 import i18n
 from brainframe.cli import config, docker_compose, os_utils, print_utils
 
-from .utils import command, subcommand_parse_args, requires_root
+from .utils import command, requires_root, subcommand_parse_args
 
 
 @command("uninstall")

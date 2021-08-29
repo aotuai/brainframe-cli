@@ -1,6 +1,6 @@
 import sys
 from argparse import ArgumentParser
-from typing import Callable, Any
+from typing import Any, Callable
 
 from brainframe.cli import os_utils, print_utils
 
@@ -28,8 +28,9 @@ def subcommand_parse_args(parser: ArgumentParser):
     return args
 
 
-def requires_root(function: Callable[[...], Any]) -> Callable[[...], Any]:
+def requires_root(function):
     """A decorator that checks if the user is root before running a function"""
+
     def wrapper(*args, **kwargs) -> Any:
         if not os_utils.is_root():
             print_utils.fail_translate("general.user-not-root")
