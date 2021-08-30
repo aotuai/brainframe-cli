@@ -1,7 +1,7 @@
+import functools
 import sys
 from argparse import ArgumentParser
 from typing import Any, Callable
-import functools
 
 from brainframe.cli import os_utils, print_utils
 
