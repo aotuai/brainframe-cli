@@ -10,6 +10,7 @@ en:
       update       Updates the BrainFrame server to a new version
       info         Provides information about the BrainFrame server
       compose      Runs all following commands and flags through docker-compose
+      uninstall    Uninstalls the BrainFrame server
 
     Examples:
       brainframe install            Installs BrainFrame interactively

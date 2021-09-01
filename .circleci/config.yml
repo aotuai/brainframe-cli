@@ -118,7 +118,10 @@ jobs:
       - run: sudo brainframe compose up -d
       - assert-core-container-running
       - assert-core-responds-to-http
-      - run: sudo brainframe compose down
+      - run: sudo brainframe uninstall --noninteractive
+      - assert-uninstalled-data-preserved:
+          install_path: /usr/share/brainframe
+          data_path: /var/lib/brainframe
 
   upload-to-pypi:
     docker:
@@ -143,7 +146,10 @@ jobs:
       - run: sudo $(which poetry) run brainframe compose up -d
       - assert-core-container-running
       - assert-core-responds-to-http
-      - run: sudo $(which poetry) run brainframe compose down
+      - run: sudo $(which poetry) run brainframe uninstall --noninteractive
+      - assert-uninstalled-data-preserved:
+          install_path: /usr/local/share/brainframe
+          data_path: /var/local/brainframe
 
   build-binary:
     docker:
@@ -188,7 +194,10 @@ jobs:
       - run: sudo brainframe compose up -d
       - assert-core-container-running
       - assert-core-responds-to-http
-      - run: sudo brainframe compose down
+      - run: sudo brainframe uninstall --noninteractive
+      - assert-uninstalled-data-preserved:
+          install_path: /usr/local/share/brainframe
+          data_path: /var/local/brainframe
 
 commands:
   install-poetry:
@@ -218,3 +227,17 @@ commands:
             done;
             echo "BrainFrame core service is up."
           no_output_timeout: 1m
+  assert-uninstalled-data-preserved:
+    parameters:
+      install_path:
+        type: string
+      data_path:
+        type: string
+    steps:
+      - run:
+          name: Check BrainFrame is uninstalled, but data is preserved
+          command: |
+            stat << parameters.data_path >>
+            ! stat << parameters.install_path >>
+            # Check that the images have been removed
+            ! docker image ls | grep aotuai/brainframe_core

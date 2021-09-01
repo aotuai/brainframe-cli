@@ -1,5 +1,9 @@
+import functools
 import sys
 from argparse import ArgumentParser
+from typing import Any, Callable
+
+from brainframe.cli import os_utils, print_utils
 
 by_name = {}
 """A dict that maps command names to their corresponding function"""
@@ -23,3 +27,16 @@ def subcommand_parse_args(parser: ArgumentParser):
         args.noninteractive = True
 
     return args
+
+
+def requires_root(function: Callable) -> Callable:
+    """A decorator that checks if the user is root before running a function"""
+
+    @functools.wraps(function)
+    def wrapper(*args, **kwargs) -> Any:
+        if not os_utils.is_root():
+            print_utils.fail_translate("general.user-not-root")
+
+        return function(*args, **kwargs)
+
+    return wrapper

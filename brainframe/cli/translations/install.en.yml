@@ -72,3 +72,4 @@ en:
   group? Doing so will allow the BrainFrame CLI to interact with Docker without
   root permissions."
   install-version: "BrainFrame:%{version} will be installed."
+  create-group-failure: "Failed to create the \"brainframe\" group: %{error}"

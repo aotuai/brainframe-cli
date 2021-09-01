@@ -1,0 +1,23 @@
+en:
+  description: "Uninstalls the BrainFrame server. This command does not
+  uninstall the BrainFrame CLI itself."
+  usage: "brainframe uninstall [<args>]"
+  delete-data-help: "If provided, data created by the BrainFrame server will be
+  deleted as well"
+
+  ask-delete-data: "Would you like to delete all data created by the BrainFrame
+  server as well?"
+  warning: "WARNING: This command will uninstall the BrainFrame server
+  and delete the server's Docker images!"
+  warning-with-delete-data: "WARNING: This command will uninstall the
+  BrainFrame server, permanently delete all data the server has produced
+  including backups, and delete the server's Docker images! This data cannot
+  be recovered."
+  directories-deleted: "The following directories will be deleted:
+  %{directories}"
+  ask-confirm: "Would you like to continue?"
+  abort: "Uninstallation has been cancelled. No data has been lost."
+  deleting-images: "Bringing down the BrainFrame server and deleting images..."
+  deleting-install-path: "Deleting the install path..."
+  deleting-data-path: "Deleting the data path..."
+  complete: "The BrainFrame server has been uninstalled."

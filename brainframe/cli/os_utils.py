@@ -28,9 +28,9 @@ def create_group(group_name: str, group_id: int):
     # Create the group
     result = run(["groupadd", group_name, "--gid", str(group_id)])
     if result.returncode != 0:
-        message = i18n.t("install.create-group-failure")
-        message = message.format(error=str(result.stderr))
-        print_utils.fail(message)
+        print_utils.fail_translate(
+            "install.create-group-failure", error=str(result.stderr)
+        )
 
 
 def added_to_group(group_name):

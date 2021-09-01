@@ -12,15 +12,13 @@ from brainframe.cli import (
     print_utils,
 )
 
-from .utils import command, subcommand_parse_args
+from .utils import command, requires_root, subcommand_parse_args
 
 
 @command("install")
+@requires_root
 def install():
     args = _parse_args()
-
-    if not os_utils.is_root():
-        print_utils.fail_translate("general.user-not-root")
 
     # Print some introductory text
     if not args.noninteractive:
