@@ -57,7 +57,9 @@ class _CurrentCommand:
         """
         with self._lock:
             if self._process is None:
-                message = "Attempted to send a signal when no process was running"
+                message = (
+                    "Attempted to send a signal when no process was running"
+                )
                 raise RuntimeError(message)
             self._interrupted = True
             self._process.send_signal(sig)
