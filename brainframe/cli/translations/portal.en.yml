@@ -26,4 +26,3 @@ en:
   BrainFrame server.\n\n\
   To get started with a new BrainFrame instance, run \"brainframe install\". To
   see more options, run \"brainframe -h\"."
-  interrupted: "The operation was interrupted"

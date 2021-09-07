@@ -33,3 +33,4 @@ en:
   or try again as root."
   missing-defaults-file: "This distribution is missing a defaults file. Please
   re-install the latest version of the BrainFrame CLI and try again."
+  interrupted: "The operation was interrupted"

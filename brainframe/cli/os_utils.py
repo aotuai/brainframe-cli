@@ -2,7 +2,8 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
+from threading import RLock
+from typing import List, Optional
 
 import distro
 import i18n
@@ -15,7 +16,56 @@ the ID of the group manually to ensure that the host machine and the Docker
 containers agree on it.
 """
 
-current_command = None
+
+class _CurrentCommand:
+    """Contains information on the current command being run as a subprocess, if one
+    exists.
+    """
+
+    _process: Optional[subprocess.Popen] = None
+    _lock = RLock()
+    _interrupted = False
+
+    @property
+    def process(self) -> Optional[subprocess.Popen]:
+        """
+        :return: The currently running subprocess, or None if no subprocess is running
+        """
+        with self._lock:
+            return self._process
+
+    @process.setter
+    def process(self, value: subprocess.Popen) -> None:
+        with self._lock:
+            if self._process is not None and self._process.poll() is None:
+                # This is never expected to happen, as subprocesses are run in serial
+                # and in a blocking fashion
+                raise RuntimeError("Only one process may be run at once")
+
+            self._process = value
+
+    @property
+    def interrupted(self) -> bool:
+        """
+        :return: If true, the subprocess was interrupted by a signal
+        """
+        return self._interrupted
+
+    def send_signal(self, sig: int):
+        """
+        :param sig: The signal to send to the subprocess
+        """
+        with self._lock:
+            if self._process is None:
+                message = (
+                    "Attempted to send a signal when no process was running"
+                )
+                raise RuntimeError(message)
+            self._interrupted = True
+            self._process.send_signal(sig)
+
+
+current_command = _CurrentCommand()
 
 
 def create_group(group_name: str, group_id: int):
@@ -103,13 +153,18 @@ def run(
     """
     if print_command:
         print_utils.print_color(" ".join(command), print_utils.Color.MAGENTA)
-    cmd = subprocess.Popen(command, *args, **kwargs)
-    global current_command
-    current_command = cmd
-    cmd.wait()
-    if cmd.returncode != 0 and exit_on_failure:
-        sys.exit(cmd.returncode)
-    return cmd
+
+    current_command.process = subprocess.Popen(command, *args, **kwargs)
+    current_command.process.wait()
+
+    if current_command.interrupted:
+        # A signal was sent to the command before it finished
+        print_utils.fail_translate("general.interrupted")
+    elif current_command.process.returncode != 0 and exit_on_failure:
+        # The command failed during normal execution
+        sys.exit(current_command.process.returncode)
+
+    return current_command.process
 
 
 _SUPPORTED_DISTROS = {
