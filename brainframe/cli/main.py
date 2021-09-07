@@ -37,14 +37,14 @@ def main():
     args = parser.parse_args(sys.argv[1:2])
 
     # Exit with a clean error when interrupted
-    def on_sigint(_sig, _frame):
+    def on_sigint(sig, _frame):
         print()
-        if os_utils.current_command is None:
-            print_utils.fail_translate("portal.interrupted")
+        if os_utils.current_command.process is None:
+            print_utils.fail_translate("general.interrupted")
         else:
             # Let os_utils.run take care of bringing the process down when the current
             # command is finished
-            os_utils.current_command.send_signal(_sig)
+            os_utils.current_command.send_signal(sig)
 
     signal.signal(signal.SIGINT, on_sigint)
 
