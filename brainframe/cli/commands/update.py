@@ -16,9 +16,7 @@ def update():
     docker_compose.assert_installed(install_path)
 
     if args.version == "latest":
-        requested_version_str = docker_compose.check_existing_version(
-            install_path
-        )
+        requested_version_str = docker_compose.get_latest_version()
     else:
         requested_version_str = args.version
 
