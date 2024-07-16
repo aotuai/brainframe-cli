@@ -75,7 +75,9 @@ docker_compose = Dependency(
             # Installs globally even if the user has docker-compose installed
             # locally
             "--ignore-installed",
-            "docker-compose",
+            "docker-compose==1.29.2",
+            "docker==6.1.3", # Install docker sdk v6.1.3 for compatible to docker-compose, see to https://github.com/docker/compose/pull/11270
+            "requests==2.31.0" 
         ]
     ),
 )
