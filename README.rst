@@ -58,6 +58,20 @@ your code to fit our guidelines:
 
 .. code-block:: bash
 
+    pip install poetry==1.8.3
+    poetry install
     poetry run isort .
     poetry run black .
+
+Build & install local build for test:
+
+.. code-block:: bash
+    poetry build
+    pip install dist/brainframe_cli-0.3.0-py3-none-any.whl
+
+Pyinstaller build:
+
+The result will be in the dist/ directory
+.. code-block:: bash
+    pyinstaller package/main.spec
 
