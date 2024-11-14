@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple
 import i18n
 import requests
 import yaml
+import subprocess
 
 from . import config, frozen_utils, os_utils, print_utils
 
@@ -28,22 +29,26 @@ def assert_installed(install_path: Path) -> None:
         )
 
 
+def get_docker_compose_command():
+    try:
+        # First, try to use 'docker compose'
+        compose_version = subprocess.check_output(["docker", "compose", "version", "--short"], stderr=subprocess.DEVNULL)
+        return ["docker", "compose"], compose_version
+    except subprocess.CalledProcessError as e2:
+        try:
+            compose_version = subprocess.check_output(["docker-compose", "version", "--short"], stderr=subprocess.DEVNULL)
+            return ["docker-compose"], compose_version
+        except subprocess.CalledProcessError as e1:
+            message = f'Docker Compose V1: {e}; V2: {e}'
+            raise DockerComposeNotFoundError(message)
+
+
 def run(install_path: Path, commands: List[str]) -> None:
     _assert_has_docker_permissions()
 
     compose_path = install_path / "docker-compose.yml"
 
-    if frozen_utils.is_frozen():
-        # Rely on the system's Docker Compose, since Compose can't be easily embedded
-        # into a PyInstaller executable
-        full_command = ["docker-compose"]
-    else:
-        # Use the included Docker Compose
-        full_command = [
-            sys.executable,
-            "-m",
-            "compose",
-        ]
+    full_command, _ = get_docker_compose_command()
 
     full_command += [
         "--file",
