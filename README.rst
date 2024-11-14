@@ -56,6 +56,9 @@ We use a couple formatting tools to keep our code style consistent. If you get
 any CI failures, you can run the following commands to automatically format
 your code to fit our guidelines:
 
+pip install poetry==1.8.3
+poetry install
+
 .. code-block:: bash
 
     poetry run isort .
