@@ -2,7 +2,7 @@ import shutil
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import config, docker_compose, os_utils, print_utils
+from brainframe.cli import config, brainframe_compose, os_utils, print_utils
 
 from .utils import command, requires_root, subcommand_parse_args
 
@@ -15,7 +15,7 @@ def uninstall():
 
     args = _parse_args()
 
-    docker_compose.assert_installed(install_path)
+    brainframe_compose.assert_installed(install_path)
 
     if args.noninteractive:
         delete_data = args.delete_data
@@ -38,7 +38,7 @@ def uninstall():
             print_utils.fail_translate("uninstall.abort")
 
     print_utils.translate("uninstall.deleting-images")
-    docker_compose.run(install_path, ["down", "--rmi", "all"])
+    brainframe_compose.run(install_path, ["down", "--rmi", "all"])
     print_utils.translate("uninstall.deleting-install-path")
     shutil.rmtree(install_path)
     if delete_data:

@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import config, docker_compose, print_utils
+from brainframe.cli import config, brainframe_compose, print_utils
 
 from .utils import command, subcommand_parse_args
 
@@ -10,9 +10,9 @@ from .utils import command, subcommand_parse_args
 def info():
     args = _parse_args()
 
-    docker_compose.assert_installed(config.install_path.value)
+    brainframe_compose.assert_installed(config.install_path.value)
 
-    server_version = docker_compose.check_existing_version(
+    server_version = brainframe_compose.check_existing_version(
         config.install_path.value
     )
 

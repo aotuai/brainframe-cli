@@ -6,7 +6,7 @@ import i18n
 from brainframe.cli import (
     config,
     dependencies,
-    docker_compose,
+    brainframe_compose,
     frozen_utils,
     os_utils,
     print_utils,
@@ -37,7 +37,7 @@ def install():
             "install.install-dependency-manually", dependency="docker-compose",
         )
 
-    download_version = docker_compose.get_latest_version()
+    download_version = brainframe_compose.get_latest_version()
     print_utils.translate("install.install-version", version=download_version)
 
     if not os_utils.added_to_group("docker"):
@@ -100,18 +100,18 @@ def install():
         if add_to_group:
             os_utils.add_to_group("brainframe")
 
-    docker_compose.download(
+    brainframe_compose.download(
         install_path / "docker-compose.yml", version=args.version
     )
 
     print_utils.translate("install.downloading-images")
-    docker_compose.run(install_path, ["pull"])
+    brainframe_compose.run(install_path, ["pull"])
 
     print()
     print_utils.translate("install.complete", print_utils.Color.GREEN)
 
     if not args.noninteractive and print_utils.ask_yes_no("install.ask-start"):
-        docker_compose.run(install_path, ["up", "-d"])
+        brainframe_compose.run(install_path, ["up", "-d"])
         print()
         print_utils.translate("install.running", print_utils.Color.GREEN)
     else:

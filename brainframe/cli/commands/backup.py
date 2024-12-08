@@ -7,7 +7,7 @@ import i18n
 from brainframe.cli import (
     config,
     dependencies,
-    docker_compose,
+    brainframe_compose,
     os_utils,
     print_utils,
 )
@@ -25,7 +25,7 @@ def backup():
 
     args = _parse_args(data_path)
 
-    docker_compose.assert_installed(install_path)
+    brainframe_compose.assert_installed(install_path)
 
     dependencies.rsync.ensure(args.noninteractive, args.install_rsync)
 
@@ -36,7 +36,7 @@ def backup():
             # doesn't want that, stop the backup
             sys.exit(1)
 
-    docker_compose.run(install_path, ["stop"])
+    brainframe_compose.run(install_path, ["stop"])
 
     if args.destination is None:
         now_str = datetime.now().strftime(BACKUP_DIR_FORMAT)

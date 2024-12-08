@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import config, docker_compose, print_utils
+from brainframe.cli import config, brainframe_compose, print_utils
 from packaging import version
 
 from .utils import command, subcommand_parse_args
@@ -13,14 +13,14 @@ def update():
 
     install_path = config.install_path.value
 
-    docker_compose.assert_installed(install_path)
+    brainframe_compose.assert_installed(install_path)
 
     if args.version == "latest":
-        requested_version_str = docker_compose.get_latest_version()
+        requested_version_str = brainframe_compose.get_latest_version()
     else:
         requested_version_str = args.version
 
-    existing_version_str = docker_compose.check_existing_version(install_path)
+    existing_version_str = brainframe_compose.check_existing_version(install_path)
 
     existing_version = version.parse(existing_version_str)
     requested_version = version.parse(requested_version_str)
@@ -59,17 +59,17 @@ def update():
 
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
-    docker_compose.download(docker_compose_path, version=requested_version_str)
+    brainframe_compose.download(docker_compose_path, version=requested_version_str)
 
-    docker_compose.run(install_path, ["pull"])
+    brainframe_compose.run(install_path, ["pull"])
 
     if args.noninteractive:
         restart = args.restart
     else:
         restart = print_utils.ask_yes_no("update.ask-restart")
     if restart:
-        docker_compose.run(install_path, ["down"])
-        docker_compose.run(install_path, ["up", "-d"])
+        brainframe_compose.run(install_path, ["down"])
+        brainframe_compose.run(install_path, ["up", "-d"])
 
     print()
     print_utils.translate("update.complete", color=print_utils.Color.GREEN)
