@@ -65,7 +65,22 @@ def run(install_path: Path, commands: List[str]) -> None:
     if env_path.is_file():
         full_command += ["--env-file", str(env_path)]
 
+    additional_help = None
+    if 'down' in commands:
+        if '--except-volumes' in commands:
+            commands.remove('--except-volumes')
+        else:
+            if '--volumes' not in commands:
+                commands += ['--volumes']
+        if '--help' in commands:
+            additional_help = '    --except-volumes        Do not add --volumes to "brainframe compose down"'
+
     os_utils.run(full_command + commands)
+
+    if additional_help is not None:
+        print_utils.print_color(
+            additional_help, color=print_utils.Color.MAGENTA, file=sys.stderr
+        )
 
 
 def download(target: Path, version: str = "latest") -> None:
