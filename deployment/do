@@ -71,7 +71,7 @@ case $CMD in
 
         brainframe-cli-2404-env-build)
         echo ├ ./deployment/do brainframe-cli-2404-env-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=24.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock $ARGS --tag brainframe-cli-env:2404 .
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env.py312 --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=24.04 --build-arg PYPROJECT=pyproject.toml.py310.py312 --build-arg POETRYLOCK=poetry.lock.py310.py312 $ARGS --tag brainframe-cli-env:2404 .
         ;;
 
         brainframe-cli-2404-env-run)
@@ -91,7 +91,7 @@ case $CMD in
 
         brainframe-cli-2204-env-build)
         echo ├ ./deployment/do brainframe-cli-2204-env-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=22.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock $ARGS --tag brainframe-cli-env:2204 .
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=22.04 --build-arg PYPROJECT=pyproject.toml.py310.py312 --build-arg POETRYLOCK=poetry.lock.py310.py312 $ARGS --tag brainframe-cli-env:2204 .
         ;;
 
         brainframe-cli-2204-env-run)
