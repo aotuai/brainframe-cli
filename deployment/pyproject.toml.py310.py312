@@ -16,13 +16,12 @@ packages = [
 include = ["brainframe/cli/translations/*", "brainframe/cli/defaults.yaml"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.10"
+python = ">=3.10,<4.0"
 python-i18n = "^0.3"
-pyyaml = ">=3.10,<6"
+pyyaml = ">=6.0"
 distro = "^1.5"
 packaging = "^20.4"
 requests = "^2.24.0"
-docker-compose = "^1.29.2"
 docker = ">4.3.1,<7.0.0"
 websocket-client = ">=0.32.0,<1.0"
 
