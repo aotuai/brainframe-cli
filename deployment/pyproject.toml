@@ -29,7 +29,7 @@ websocket-client = ">=0.32.0,<1.0"
 [tool.poetry.dev-dependencies]
 black = "*"
 mypy = "*"
-pyinstaller = "^4.0"
+pyinstaller = "^5.13"
 isort = "*"
 boto3 = "^1.17.83"
 
