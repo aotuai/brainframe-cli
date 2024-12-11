@@ -1,0 +1,166 @@
+#!/bin/bash
+#
+# Copyright (c) 2024 AOTU, Inc.  All rights reserved. Contains Dilili Labs Proprietary Information. RESTRICTED COMPUTER SOFTWARE.  LIMITED RIGHTS DATA.
+#
+
+CMDLINE=$0
+CMD=$1
+ARG=$2
+ARGS="${@:2}"
+
+DATE=$(date -u +"%Y-%m-%d-%H-%M-%S")
+
+if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
+	echo " Copyright (c) 2024 AOTU, Inc. All rights reserved."
+	cat $CMDLINE | grep echo | awk '(NR>2)' | awk '(NR<29)' | awk '{$1= ""; print $0}'
+fi
+
+case $CMD in
+
+	help)
+	;;
+
+	comments_only)
+	echo ┌─────── deploy brainframe-cli ──────────────────────────
+	;;
+
+        ubuntu-2404-build)
+        echo ├ ./deployment/do ubuntu-2404-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=24.04 $ARGS --tag ubuntu-2404 .
+        ;;
+
+        ubuntu-2404-run)
+        echo │ ./deployment/do ubuntu-2404-run
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-2404 bash
+        ;;
+
+        ubuntu-2204-build)
+        echo ├ ./deployment/do ubuntu-2204-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=22.04 $ARGS --tag ubuntu-2204 .
+        ;;
+
+        ubuntu-2204-run)
+        echo │ ./deployment/do ubuntu-2204-run
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-2204 bash
+        ;;
+
+        ubuntu-2004-build)
+        echo ├ ./deployment/do ubuntu-2004-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=20.04 $ARGS --tag ubuntu-2004 .
+        ;;
+
+        ubuntu-2004-run)
+        echo │ ./deployment/do ubuntu-2004-run
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-2004 bash
+        ;;
+
+        ubuntu-1804-build)
+        echo ├ ./deployment/do ubuntu-1804-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=18.04 $ARGS --tag ubuntu-1804 .
+        ;;
+
+        ubuntu-1804-run)
+        echo │ ./deployment/do ubuntu-1804-run
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-1804 bash
+        ;;
+
+	comments_only)
+	echo └────────────────────────────────────────────────────────
+	echo ┌─────── build brainframe-cli ───────────────────────────
+	;;
+
+        brainframe-cli-2404-env-build)
+        echo ├ ./deployment/do brainframe-cli-2404-env-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=24.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock $ARGS --tag brainframe-cli-env:2404 .
+        ;;
+
+        brainframe-cli-2404-env-run)
+        echo │ ./deployment/do brainframe-cli-2404-env-run
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2404 bash
+        ;;
+
+        brainframe-cli-2404-lint)
+        echo │ ./deployment/do brainframe-cli-2404-lint
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2404 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli/ && poetry run isort /brainframe-cli/"
+        ;;
+
+        brainframe-cli-2404-build)
+        echo │ ./deployment/do brainframe-cli-2404-build
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:2404 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
+        ;;
+
+        brainframe-cli-2204-env-build)
+        echo ├ ./deployment/do brainframe-cli-2204-env-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=22.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock $ARGS --tag brainframe-cli-env:2204 .
+        ;;
+
+        brainframe-cli-2204-env-run)
+        echo │ ./deployment/do brainframe-cli-2204-env-run
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2204 bash
+        ;;
+
+        brainframe-cli-2204-lint)
+        echo │ ./deployment/do brainframe-cli-2204-lint
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2204 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli/ && poetry run isort /brainframe-cli/"
+        ;;
+
+	brainframe-cli-2204-build)
+        echo │ ./deployment/do brainframe-cli-2204-build
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:2204 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
+        ;;
+
+        brainframe-cli-2004-env-build)
+        echo ├ ./deployment/do brainframe-cli-2004-env-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=20.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock $ARGS --tag brainframe-cli-env:2004 .
+        ;;
+
+        brainframe-cli-2004-env-run)
+        echo │ ./deployment/do brainframe-cli-2004-env-run
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2004 bash
+        ;;
+
+        brainframe-cli-2004-lint)
+        echo │ ./deployment/do brainframe-cli-2004-lint
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2004 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli && poetry run isort /brainframe-cli"
+        ;;
+
+        brainframe-cli-2004-build)
+        echo │ ./deployment/do brainframe-cli-2004-build
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:2004 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
+        ;;
+
+        brainframe-cli-1804-env-build)
+        echo ├ ./deployment/do brainframe-cli-1804-env-build # --no-cache
+        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=18.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock --build-arg POETRY_VERSION=1.1.14 $ARGS --tag brainframe-cli-env:1804 .
+        ;;
+
+        brainframe-cli-1804-env-run)
+        echo │ ./deployment/do brainframe-cli-1804-env-run
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:1804 bash
+        ;;
+
+        brainframe-cli-1804-lint)
+        echo │ ./deployment/do brainframe-cli-1804-lint
+        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:1804 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli && poetry run isort /brainframe-cli"
+        ;;
+
+        brainframe-cli-1804-build)
+        echo │ ./deployment/do brainframe-cli-1804-build
+        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:1804 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
+        ;;
+
+	comments_only)
+	echo └────────────────────────────────────────────────────────
+	;;
+
+esac
+
+nice_day_var=$((1 + $RANDOM % 10))
+
+if [ $(($nice_day_var%2)) -eq 0 ]; then
+	echo
+	echo Have a nice day!
+else
+	echo
+	echo You are the best!
+fi
