@@ -10,9 +10,69 @@ ARGS="${@:2}"
 
 DATE=$(date -u +"%Y-%m-%d-%H-%M-%S")
 
+build_ubuntu_docker() {
+    local UBUNTU_VERSION=$1
+    local ARGS="${@:2}"
+
+    DOCKER_BUILDKIT=1 docker build \
+        --file deployment/Dockerfile.ubuntu \
+        --build-arg UBUNTU_VERSION="$UBUNTU_VERSION" \
+        $ARGS \
+        --tag "test-ubuntu-${UBUNTU_VERSION}" \
+        .
+}
+
+run_docker() {
+    local VOLUME=$1
+    local WORKDIR=$2
+    local IMAGE=$3
+    local UBUNTU_VERSION=$4
+    local ARG=$6
+    local ARGS=${@:7}
+
+    local IMAGE_TAG="${IMAGE}-${UBUNTU_VERSION}"
+
+    if [[ -z "$ARG" ]]; then
+        docker run -it --rm \
+            -v ./:$VOLUME \
+            -w $WORKDIR \
+            "$IMAGE_TAG" \
+            bash
+    else
+        docker run -it --rm \
+            -v ./:$VOLUME \
+            -w $WORKDIR \
+            "$IMAGE_TAG" \
+            bash \
+	    $ARG \
+            "$ARGS"
+    fi
+}
+
+build_brainframe_cli_env() {
+    local DOCKERFILE=$1
+    local PYPROJECT=$2
+    local POETRYLOCK=$3
+    local UBUNTU_VERSION=$4
+    local ADDITIONAL_ARGS=${@:5}
+
+    local IMAGE_TAG="brainframe-cli-env-${UBUNTU_VERSION}"
+
+    # Build the Docker image
+    DOCKER_BUILDKIT=1 docker build \
+        --file "deployment/$DOCKERFILE" \
+        --build-arg WORKDIR=/deployment \
+        --build-arg UBUNTU_VERSION="$UBUNTU_VERSION" \
+        --build-arg PYPROJECT="$PYPROJECT" \
+        --build-arg POETRYLOCK="$POETRYLOCK" \
+        $ADDITIONAL_ARGS \
+        --tag "$IMAGE_TAG" \
+        .
+}
+
 if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
 	echo " Copyright (c) 2024 AOTU, Inc. All rights reserved."
-	cat $CMDLINE | grep echo | awk '(NR>2)' | awk '(NR<29)' | awk '{$1= ""; print $0}'
+	cat $CMDLINE | grep echo | awk '(NR>2)' | awk '(NR<11)' | awk '{$1= ""; print $0}'
 fi
 
 case $CMD in
@@ -24,44 +84,14 @@ case $CMD in
 	echo ┌─────── deploy brainframe-cli ──────────────────────────
 	;;
 
-        ubuntu-2404-build)
-        echo ├ ./deployment/do ubuntu-2404-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=24.04 $ARGS --tag ubuntu-2404 .
+        ubuntu-build)
+        echo ├ ./deployment/do ubuntu-build 20.04 # --no-cache
+        build_ubuntu_docker $ARGS
         ;;
 
-        ubuntu-2404-run)
-        echo │ ./deployment/do ubuntu-2404-run
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-2404 bash
-        ;;
-
-        ubuntu-2204-build)
-        echo ├ ./deployment/do ubuntu-2204-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=22.04 $ARGS --tag ubuntu-2204 .
-        ;;
-
-        ubuntu-2204-run)
-        echo │ ./deployment/do ubuntu-2204-run
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-2204 bash
-        ;;
-
-        ubuntu-2004-build)
-        echo ├ ./deployment/do ubuntu-2004-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=20.04 $ARGS --tag ubuntu-2004 .
-        ;;
-
-        ubuntu-2004-run)
-        echo │ ./deployment/do ubuntu-2004-run
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-2004 bash
-        ;;
-
-        ubuntu-1804-build)
-        echo ├ ./deployment/do ubuntu-1804-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.ubuntu --build-arg UBUNTU_VERSION=18.04 $ARGS --tag ubuntu-1804 .
-        ;;
-
-        ubuntu-1804-run)
-        echo │ ./deployment/do ubuntu-1804-run
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli/dist ubuntu-1804 bash
+        ubuntu-run)
+        echo │ ./deployment/do ubuntu-run 20.04
+        run_docker /brainframe-cli /brainframe-cli/dist test-ubuntu $ARGS
         ;;
 
 	comments_only)
@@ -69,84 +99,57 @@ case $CMD in
 	echo ┌─────── build brainframe-cli ───────────────────────────
 	;;
 
-        brainframe-cli-2404-env-build)
-        echo ├ ./deployment/do brainframe-cli-2404-env-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env.py312 --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=24.04 --build-arg PYPROJECT=pyproject.toml.py310.py312 --build-arg POETRYLOCK=poetry.lock.py310.py312 $ARGS --tag brainframe-cli-env:2404 .
+        brainframe-cli-env-build)
+        echo ├ ./deployment/do brainframe-cli-env-build 20.04 # --no-cache
+	case $ARG in
+		24.04)
+		build_brainframe_cli_env Dockerfile.env.py312 pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS
+		;;
+
+		22.04)
+		build_brainframe_cli_env Dockerfile.env pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS
+		;;
+
+		20.04)
+		build_brainframe_cli_env Dockerfile.env pyproject.toml.py38 poetry.lock.py38 $ARGS
+		;;
+
+		18.04)
+		build_brainframe_cli_env Dockerfile.env pyproject.toml.py38 poetry.lock.py38 $ARGS
+		;;
+	esac
         ;;
 
-        brainframe-cli-2404-env-run)
-        echo │ ./deployment/do brainframe-cli-2404-env-run
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2404 bash
+        brainframe-cli-env-run)
+        echo │ ./deployment/do brainframe-cli-env-run 20.04
+	run_docker /brainframe-cli /deployment brainframe-cli-env $ARGS
         ;;
 
-        brainframe-cli-2404-lint)
-        echo │ ./deployment/do brainframe-cli-2404-lint
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2404 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli/ && poetry run isort /brainframe-cli/"
+        brainframe-cli-lint)
+        echo │ ./deployment/do brainframe-cli-lint 20.04
+        run_docker /brainframe-cli /deployment brainframe-cli-env $ARG bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli/ && poetry run isort /brainframe-cli/"
         ;;
 
-        brainframe-cli-2404-build)
-        echo │ ./deployment/do brainframe-cli-2404-build
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:2404 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
-        ;;
+        brainframe-cli-build)
+        echo │ ./deployment/do brainframe-cli-build 20.04
+	case $ARG in
+		24.04)
+		PYTHON_TAG="3.10 3.12"
+		;;
 
-        brainframe-cli-2204-env-build)
-        echo ├ ./deployment/do brainframe-cli-2204-env-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=22.04 --build-arg PYPROJECT=pyproject.toml.py310.py312 --build-arg POETRYLOCK=poetry.lock.py310.py312 $ARGS --tag brainframe-cli-env:2204 .
-        ;;
+		22.04)
+		PYTHON_TAG="3.10 3.12"
+		;;
 
-        brainframe-cli-2204-env-run)
-        echo │ ./deployment/do brainframe-cli-2204-env-run
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2204 bash
-        ;;
+		20.04)
+		PYTHON_TAG=3.8
+		;;
 
-        brainframe-cli-2204-lint)
-        echo │ ./deployment/do brainframe-cli-2204-lint
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2204 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli/ && poetry run isort /brainframe-cli/"
-        ;;
-
-	brainframe-cli-2204-build)
-        echo │ ./deployment/do brainframe-cli-2204-build
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:2204 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
-        ;;
-
-        brainframe-cli-2004-env-build)
-        echo ├ ./deployment/do brainframe-cli-2004-env-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=20.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock $ARGS --tag brainframe-cli-env:2004 .
-        ;;
-
-        brainframe-cli-2004-env-run)
-        echo │ ./deployment/do brainframe-cli-2004-env-run
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2004 bash
-        ;;
-
-        brainframe-cli-2004-lint)
-        echo │ ./deployment/do brainframe-cli-2004-lint
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:2004 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli && poetry run isort /brainframe-cli"
-        ;;
-
-        brainframe-cli-2004-build)
-        echo │ ./deployment/do brainframe-cli-2004-build
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:2004 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
-        ;;
-
-        brainframe-cli-1804-env-build)
-        echo ├ ./deployment/do brainframe-cli-1804-env-build # --no-cache
-        DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.env --build-arg WORKDIR=/deployment --build-arg UBUNTU_VERSION=18.04 --build-arg PYPROJECT=pyproject.toml --build-arg POETRYLOCK=poetry.lock --build-arg POETRY_VERSION=1.1.14 $ARGS --tag brainframe-cli-env:1804 .
-        ;;
-
-        brainframe-cli-1804-env-run)
-        echo │ ./deployment/do brainframe-cli-1804-env-run
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:1804 bash
-        ;;
-
-        brainframe-cli-1804-lint)
-        echo │ ./deployment/do brainframe-cli-1804-lint
-        docker run -it --rm -v ./:/brainframe-cli -w /deployment brainframe-cli-env:1804 bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli && poetry run isort /brainframe-cli"
-        ;;
-
-        brainframe-cli-1804-build)
-        echo │ ./deployment/do brainframe-cli-1804-build
-        docker run -it --rm -v ./:/brainframe-cli -w /brainframe-cli brainframe-cli-env:1804 bash -c "cp /deployment/* /brainframe-cli/ && poetry lock --no-update && poetry build -f wheel"
+		18.04)
+		PYTHON_TAG=
+		;;
+	esac
+        run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "cp /deployment/* /brainframe-cli/ && python3 deployment/build.py --versions $PYTHON_TAG"
         ;;
 
 	comments_only)
