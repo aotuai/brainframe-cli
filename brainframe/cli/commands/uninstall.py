@@ -2,9 +2,14 @@ import shutil
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import config, brainframe_compose, os_utils, print_utils
+from brainframe.cli import brainframe_compose
+from brainframe.cli import config
+from brainframe.cli import os_utils
+from brainframe.cli import print_utils
 
-from .utils import command, requires_root, subcommand_parse_args
+from .utils import command
+from .utils import requires_root
+from .utils import subcommand_parse_args
 
 
 @command("uninstall")
@@ -31,7 +36,8 @@ def uninstall():
             print_utils.warning_translate("uninstall.warning")
 
         print_utils.warning_translate(
-            "uninstall.directories-deleted", directories=directories_to_delete,
+            "uninstall.directories-deleted",
+            directories=directories_to_delete,
         )
         confirmed = print_utils.ask_yes_no("uninstall.ask-confirm")
         if not confirmed:

@@ -15,7 +15,9 @@ name, version = poetry_output.split()
 setuptools.setup(
     name=name,
     version=version,
-    packages=setuptools.find_namespace_packages(include="brainframe*",),
+    packages=setuptools.find_namespace_packages(
+        include="brainframe*",
+    ),
     scripts=["brainframe/cli/main.py"],
     package_data={
         "brainframe.cli.translations": ["*.yml"],

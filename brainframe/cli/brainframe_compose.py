@@ -1,14 +1,19 @@
 import os
+import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 import i18n
 import requests
 import yaml
-import subprocess
 
-from . import config, frozen_utils, os_utils, print_utils
+from . import config
+from . import frozen_utils
+from . import os_utils
+from . import print_utils
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
@@ -32,14 +37,20 @@ def assert_installed(install_path: Path) -> None:
 def get_docker_compose_command():
     try:
         # First, try to use 'docker compose'
-        compose_version = subprocess.check_output(["docker", "compose", "version", "--short"], stderr=subprocess.DEVNULL)
+        compose_version = subprocess.check_output(
+            ["docker", "compose", "version", "--short"],
+            stderr=subprocess.DEVNULL,
+        )
         return ["docker", "compose"], compose_version
     except subprocess.CalledProcessError as e2:
         try:
-            compose_version = subprocess.check_output(["docker-compose", "version", "--short"], stderr=subprocess.DEVNULL)
+            compose_version = subprocess.check_output(
+                ["docker-compose", "version", "--short"],
+                stderr=subprocess.DEVNULL,
+            )
             return ["docker-compose"], compose_version
         except subprocess.CalledProcessError as e1:
-            message = f'Docker Compose V1: {e}; V2: {e}'
+            message = f"Docker Compose V1: {e}; V2: {e}"
             raise DockerComposeNotFoundError(message)
 
 
@@ -66,13 +77,13 @@ def run(install_path: Path, commands: List[str]) -> None:
         full_command += ["--env-file", str(env_path)]
 
     additional_help = None
-    if 'down' in commands:
-        if '--except-volumes' in commands:
-            commands.remove('--except-volumes')
+    if "down" in commands:
+        if "--except-volumes" in commands:
+            commands.remove("--except-volumes")
         else:
-            if '--volumes' not in commands:
-                commands += ['--volumes']
-        if '--help' in commands:
+            if "--volumes" not in commands:
+                commands += ["--volumes"]
+        if "--help" in commands:
             additional_help = '    --except-volumes        Do not add --volumes to "brainframe compose down"'
 
     os_utils.run(full_command + commands)

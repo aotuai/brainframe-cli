@@ -3,7 +3,8 @@ from tempfile import NamedTemporaryFile
 
 import requests
 
-from . import os_utils, print_utils
+from . import os_utils
+from . import print_utils
 
 
 class Dependency:
@@ -66,7 +67,11 @@ def _install_docker():
         os_utils.run(["sh", get_docker_script.name])
 
 
-docker = Dependency("docker", "install.ask-install-docker", _install_docker,)
+docker = Dependency(
+    "docker",
+    "install.ask-install-docker",
+    _install_docker,
+)
 
 rsync = Dependency(
     "rsync",

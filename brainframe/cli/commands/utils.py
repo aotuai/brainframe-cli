@@ -1,9 +1,11 @@
 import functools
 import sys
 from argparse import ArgumentParser
-from typing import Any, Callable
+from typing import Any
+from typing import Callable
 
-from brainframe.cli import os_utils, print_utils
+from brainframe.cli import os_utils
+from brainframe.cli import print_utils
 
 by_name = {}
 """A dict that maps command names to their corresponding function"""

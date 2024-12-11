@@ -3,7 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 from threading import RLock
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 import distro
 import i18n

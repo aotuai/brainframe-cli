@@ -1,11 +1,18 @@
 import os
 from distutils.util import strtobool
 from pathlib import Path
-from typing import Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
+from typing import Callable
+from typing import Dict
+from typing import Generic
+from typing import Optional
+from typing import Tuple
+from typing import TypeVar
+from typing import Union
 
 import yaml
 
-from . import frozen_utils, print_utils
+from . import frozen_utils
+from . import print_utils
 
 T = TypeVar("T")
 

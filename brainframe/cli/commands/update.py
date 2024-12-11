@@ -1,10 +1,13 @@
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import config, brainframe_compose, print_utils
+from brainframe.cli import brainframe_compose
+from brainframe.cli import config
+from brainframe.cli import print_utils
 from packaging import version
 
-from .utils import command, subcommand_parse_args
+from .utils import command
+from .utils import subcommand_parse_args
 
 
 @command("update")
@@ -20,7 +23,9 @@ def update():
     else:
         requested_version_str = args.version
 
-    existing_version_str = brainframe_compose.check_existing_version(install_path)
+    existing_version_str = brainframe_compose.check_existing_version(
+        install_path
+    )
 
     existing_version = version.parse(existing_version_str)
     requested_version = version.parse(requested_version_str)
@@ -59,7 +64,9 @@ def update():
 
     print_utils.translate("general.downloading-docker-compose")
     docker_compose_path = install_path / "docker-compose.yml"
-    brainframe_compose.download(docker_compose_path, version=requested_version_str)
+    brainframe_compose.download(
+        docker_compose_path, version=requested_version_str
+    )
 
     brainframe_compose.run(install_path, ["pull"])
 
@@ -98,7 +105,9 @@ def _parse_args():
     )
 
     parser.add_argument(
-        "--force", action="store_true", help=i18n.t("update.force-help"),
+        "--force",
+        action="store_true",
+        help=i18n.t("update.force-help"),
     )
 
     return subcommand_parse_args(parser)

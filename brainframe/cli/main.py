@@ -6,13 +6,11 @@ import sys
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import (
-    commands,
-    config,
-    frozen_utils,
-    os_utils,
-    print_utils,
-)
+from brainframe.cli import commands
+from brainframe.cli import config
+from brainframe.cli import frozen_utils
+from brainframe.cli import os_utils
+from brainframe.cli import print_utils
 
 
 def main():
@@ -31,7 +29,8 @@ def main():
     # This environment variable must be set as it is used by the
     # docker-compose.yml to find the data path to volume mount
     os.environ.setdefault(
-        config.data_path.env_var_name, str(config.data_path.default),
+        config.data_path.env_var_name,
+        str(config.data_path.default),
     )
 
     args = parser.parse_args(sys.argv[1:2])

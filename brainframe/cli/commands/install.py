@@ -3,16 +3,16 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import i18n
-from brainframe.cli import (
-    config,
-    dependencies,
-    brainframe_compose,
-    frozen_utils,
-    os_utils,
-    print_utils,
-)
+from brainframe.cli import brainframe_compose
+from brainframe.cli import config
+from brainframe.cli import dependencies
+from brainframe.cli import frozen_utils
+from brainframe.cli import os_utils
+from brainframe.cli import print_utils
 
-from .utils import command, requires_root, subcommand_parse_args
+from .utils import command
+from .utils import requires_root
+from .utils import subcommand_parse_args
 
 
 @command("install")
@@ -34,7 +34,8 @@ def install():
     # We only require the Docker Compose command in frozen distributions
     if frozen_utils.is_frozen() and shutil.which("docker-compose") is None:
         print_utils.fail_translate(
-            "install.install-dependency-manually", dependency="docker-compose",
+            "install.install-dependency-manually",
+            dependency="docker-compose",
         )
 
     download_version = brainframe_compose.get_latest_version()
@@ -70,7 +71,8 @@ def install():
         install_path = config.install_path.default
     else:
         install_path = print_utils.ask_path(
-            "install.ask-brainframe-install-path", config.install_path.default,
+            "install.ask-brainframe-install-path",
+            config.install_path.default,
         )
     install_path.mkdir(exist_ok=True, parents=True)
 
