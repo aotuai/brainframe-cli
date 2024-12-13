@@ -66,12 +66,27 @@ your code to fit our guidelines:
 Build & install local build for test:
 
 .. code-block:: bash
+    python3 deployment/build.py --version 3.8
+    python3 deployment/build.py --version 3.10 3.12
+    pip install dist/brainframe_cli-0.3.0-py3-none-any.whl
+
+The above build.py will copy pyproject.toml & poetry.lock in deployment folder
+to the project root, and automatically run poetry build. Similar to below,
+
+.. code-block:: bash
     poetry build
     pip install dist/brainframe_cli-0.3.0-py3-none-any.whl
+
+The wheel build & test commands have been integrated in deployment/do script,
+which support build & test on Ubuntu 18.04/20.04/22.04/24.04
+
+.. code-block:: bash
+    deployment/do
 
 Pyinstaller build:
 
 The result will be in the dist/ directory
+
 .. code-block:: bash
     pyinstaller package/main.spec
 

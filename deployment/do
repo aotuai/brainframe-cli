@@ -10,6 +10,20 @@ ARGS="${@:2}"
 
 DATE=$(date -u +"%Y-%m-%d-%H-%M-%S")
 
+dind_help() {
+        echo ""
+        echo " ================== DinD test help ================="
+        echo " pip install brainframe_cli_v "
+        echo " export LOGNAME=root"
+        echo " dockerd &"
+	echo " python3 -m venv my_venv"
+	echo " source my_venv/bin/activate"
+        echo " brainframe install"
+        echo " brainframe compose down"
+        echo " ===================================================="
+        echo ""
+}
+
 build_ubuntu_docker() {
     local UBUNTU_VERSION=$1
     local ARGS="${@:2}"
@@ -33,7 +47,8 @@ run_docker() {
     local IMAGE_TAG="${IMAGE}-${UBUNTU_VERSION}"
 
     if [[ -z "$ARG" ]]; then
-        docker run -it --rm \
+	dind_help
+        docker run --privileged -it --rm \
             -v ./:$VOLUME \
             -w $WORKDIR \
             "$IMAGE_TAG" \
@@ -72,7 +87,7 @@ build_brainframe_cli_env() {
 
 if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
 	echo " Copyright (c) 2024 AOTU, Inc. All rights reserved."
-	cat $CMDLINE | grep echo | awk '(NR>2)' | awk '(NR<11)' | awk '{$1= ""; print $0}'
+	cat $CMDLINE | grep echo | awk '(NR>11)' | awk '(NR<11)' | awk '{$1= ""; print $0}'
 fi
 
 case $CMD in
