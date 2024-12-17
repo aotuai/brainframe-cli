@@ -69,13 +69,19 @@ workflows:
 jobs:
   lint:
     docker:
-      - image: cimg/python:3.6
+      - image: aotuai/brainframe-cli-env-22.04:428a5b
     steps:
       - checkout
-      - run: poetry install --no-root
-      - run: poetry run isort --check .
-      - run: poetry run black --check .
-      - run: poetry run mypy -p "brainframe.cli"
+      - run: cp /deployment/* ~/project/
+      - run:
+          working_directory: /deployment
+          command: poetry run isort --check ~/project/
+      - run:
+          working_directory: /deployment
+          command: poetry run black --check ~/project/
+      - run: 
+          working_directory: /deployment
+          command: MYPYPATH=~/project/ poetry run mypy --config-file ~/project/mypy.ini -p "brainframe.cli"
 
   build-deb:
     parameters:
