@@ -87,7 +87,7 @@ build_brainframe_cli_env() {
 
 if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
 	echo " Copyright (c) 2024 AOTU, Inc. All rights reserved."
-	cat $CMDLINE | grep echo | awk '(NR>11)' | awk '(NR<11)' | awk '{$1= ""; print $0}'
+	cat $CMDLINE | grep echo | awk '(NR>13)' | awk '(NR<11)' | awk '{$1= ""; print $0}'
 fi
 
 case $CMD in
@@ -142,7 +142,12 @@ case $CMD in
 
         brainframe-cli-lint)
         echo │ ./deployment/do brainframe-cli-lint 20.04
-        run_docker /brainframe-cli /deployment brainframe-cli-env $ARG bash -c "cp /deployment/* /brainframe-cli/ && poetry run black /brainframe-cli/ && poetry run isort /brainframe-cli/"
+        run_docker /brainframe-cli /deployment brainframe-cli-env $ARG bash -c "
+            cp /deployment/* /brainframe-cli/ &&
+            poetry run black /brainframe-cli/ &&
+            poetry run isort /brainframe-cli/ &&
+            MYPYPATH=/brainframe-cli/ poetry run mypy --config-file /brainframe-cli/mypy.ini -p 'brainframe.cli'
+            "
         ;;
 
         brainframe-cli-build)
@@ -164,7 +169,22 @@ case $CMD in
 		PYTHON_TAG=
 		;;
 	esac
-        run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "cp /deployment/* /brainframe-cli/ && python3 deployment/build.py --versions $PYTHON_TAG"
+	# build pip wheel
+	run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
+            cp /deployment/* /brainframe-cli/ &&
+            python3 deployment/build.py --versions $PYTHON_TAG
+            "
+        # build pyinstaller 
+        run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
+            apt-get update &&
+            apt-get install -y binutils &&
+            cd /deployment &&
+            poetry config virtualenvs.in-project true &&
+            poetry install --no-root &&
+            VENV_PATH=\$(poetry env info --path) &&
+            cd /brainframe-cli &&
+            PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python -m PyInstaller package/main.spec
+            "
         ;;
 
 	comments_only)
