@@ -3,47 +3,71 @@ version: 2.1
 parameters:
   poetry-version:
     type: string
-    default: "1.1.4"
+    default: "1.8.3"
 
 
 executors:
   focal:
     docker:
-      - image: cimg/base:stable-20.04
+      - image: aotuai/brainframe-cli-env-20.04:7d3e7d
   bionic:
     docker:
-      - image: cimg/base:stable-18.04
+      - image: aotuai/brainframe-cli-env-18.04:7d3e7d
 
 
 workflows:
   lint:
     jobs:
-      - lint
-  deb:
+      - lint-approval:
+          type: approval
+          requires: []
+      - lint:
+          requires:
+            - lint-approval
+  build-and-test-deb:
     jobs:
+      - build-approval:
+          type: approval
+          requires: []
       - build-deb:
+          requires:
+            - build-approval
           matrix:
             parameters:
               os: [bionic, focal]
       - test-installation-deb:
           requires:
             - build-deb
-  binary:
+  build-and-upload-binary:
     jobs:
-      - build-binary
+      - build-binary-approval:
+          type: approval
+          requires: []
+      - build-binary:
+          requires:
+            - build-binary-approval
       - test-installation-binary:
           requires:
             - build-binary
+      - push-to-staging-approval:
+          type: approval
+          requires:
+            - build-binary
+            - test-installation-binary
       - upload-binary:
           name: upload-binary-staging
           context: aws-staging
           requires:
-            - test-installation-binary
+            - push-to-staging-approval
+      - push-to-production-approval:
+          type: approval
+          requires:
+            - upload-binary-staging
       - upload-binary:
           name: upload-binary-production
           context: aws
           requires:
-            - upload-binary-staging
+            - push-to-production-approval
           filters:
             # Ignore any commit on any branch by default
             branches:
@@ -51,9 +75,14 @@ workflows:
             # Run only when a tag is created
             tags:
               only: /^v.+\..+\..+/
-  deploy:
+  pypi-deploy:
     jobs:
+      - push-to-pypi-approval:
+          type: approval
+          requires: []
       - upload-to-pypi:
+          requires:
+            - push-to-pypi-approval
           filters:
             # Ignore any commit on any branch by default
             branches:
@@ -61,21 +90,32 @@ workflows:
             # Run only when a tag is created
             tags:
               only: /^v.+\..+\..+/
-  tests:
+  installation-tests:
     jobs:
-      - test-installation-source
+      - test-approval:
+          type: approval
+          requires: []
+      - test-installation-source:
+          requires:
+            - test-approval
 
 
 jobs:
   lint:
     docker:
-      - image: cimg/python:3.6
+      - image: aotuai/brainframe-cli-env-20.04:7d3e7d
     steps:
       - checkout
-      - run: poetry install --no-root
-      - run: poetry run isort --check .
-      - run: poetry run black --check .
-      - run: poetry run mypy -p "brainframe.cli"
+      - run: cp /deployment/* ~/project/
+      - run:
+          working_directory: /deployment
+          command: poetry run isort --check ~/project/
+      - run:
+          working_directory: /deployment
+          command: poetry run black --check ~/project/
+      - run: 
+          working_directory: /deployment
+          command: MYPYPATH=~/project/ poetry run mypy --config-file ~/project/mypy.ini -p "brainframe.cli"
 
   build-deb:
     parameters:
@@ -83,17 +123,25 @@ jobs:
         type: executor
     executor: << parameters.os >>
     steps:
-      - run: sudo apt-get update
-      - run: sudo apt-get install -y software-properties-common dpkg-dev devscripts equivs python3-pip
-      - run: sudo add-apt-repository ppa:jyrki-pulliainen/dh-virtualenv
-      - run: sudo apt-get install -y dh-virtualenv
+      - run: apt-get update
+      - run: apt-get install -y software-properties-common dpkg-dev devscripts equivs python3-pip
+      - run: add-apt-repository -y ppa:jyrki-pulliainen/dh-virtualenv
+      - run: apt-get install -y dh-virtualenv
       - install-poetry
       - checkout
-      - run: cp -r package/debian .
-      - run: cp package/setup.py .
-      - run: cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml
-      - run: sudo mk-build-deps --install debian/control
-      - run: poetry export --output requirements.txt
+      - run:
+          working_directory: ~/project/
+          command: |
+              cp -r package/debian .
+              cp package/setup.py .
+              cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml
+              cp deployment/pyproject.toml.py310.py312 pyproject.toml
+              cp deployment/poetry.lock.py310.py312 poetry.lock
+      - run:
+          working_directory: ~/project/
+          command: |
+              mk-build-deps --install debian/control
+              poetry export --output requirements.txt
       - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
       - run: mkdir dist
       - run: |
@@ -108,7 +156,7 @@ jobs:
 
   test-installation-deb:
     machine:
-      image: ubuntu-2004:202010-01
+      image: aotuai/test-ubuntu-20.04:7d3e7d
     steps:
       - run: sudo apt-get update
       - attach_workspace:
@@ -125,7 +173,7 @@ jobs:
 
   upload-to-pypi:
     docker:
-      - image: cimg/python:3.6
+      - image: cimg/python:3.8
     environment:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
     steps:
@@ -135,13 +183,19 @@ jobs:
 
   test-installation-source:
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2204:2024.11.1
+    resource_class: medium
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get -y install python3-pip python3-dev curl git
       - checkout
       - install-poetry
-      - run: sudo $(which poetry) install
+      - run:
+          working_directory: ~/project/
+          command: |
+              cp deployment/pyproject.toml.py310.py312 pyproject.toml
+              cp deployment/poetry.lock.py310.py312 poetry.lock
+              sudo $(which poetry) install
       - run: sudo $(which poetry) run brainframe install --noninteractive
       - run: sudo $(which poetry) run brainframe compose up -d
       - assert-core-container-running
@@ -153,18 +207,25 @@ jobs:
 
   build-binary:
     docker:
-      # CentOS 7 is the oldest Linux distribution we unofficially support.
-      # Building on here allows us to link to a very old version of libc,
-      # which will work on all more modern distributions.
-      - image: centos:7
+      - image: aotuai/brainframe-cli-env-20.04:7d3e7d
     environment:
       PYTHONIOENCODING: utf8
     steps:
       - checkout
-      - run: yum -y install python3
-      - install-poetry
-      - run: poetry install --no-root
-      - run: PYTHONPATH=$PYTHONPATH:. poetry run pyinstaller package/main.spec
+      - run:
+          working_directory: /deployment
+          command: |
+              cp /deployment/* ~/project/
+              apt-get update
+              apt-get install -y binutils
+              poetry config virtualenvs.in-project true
+              $(which poetry) install --no-root
+      - run:
+          working_directory: /deployment
+          command: |
+              VENV_PATH=$(poetry env info --path)
+              cd ~/project/
+              PYTHONPATH=$PYTHONPATH:. $VENV_PATH/bin/python -m PyInstaller package/main.spec
       - store_artifacts:
           path: dist
       - persist_to_workspace:
@@ -174,7 +235,7 @@ jobs:
 
   upload-binary:
     docker:
-      - image: cimg/python:3.6
+      - image: cimg/python:3.8
     steps:
       - attach_workspace:
           at: /tmp/workspace
@@ -184,7 +245,8 @@ jobs:
 
   test-installation-binary:
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2204:2024.11.1
+    resource_class: medium
     steps:
       - run: sudo apt-get update
       - attach_workspace:
@@ -203,16 +265,16 @@ commands:
   install-poetry:
     steps:
       - run: >
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py
+          curl -sSL https://install.python-poetry.org 
           | python3 - --version << pipeline.parameters.poetry-version >>
       # Add to the PATH
-      - run: echo 'export PATH=$HOME/.poetry/bin:$PATH' >> $BASH_ENV
+      - run: echo 'export PATH=$HOME/.local/bin:$PATH' >> $BASH_ENV
   assert-core-container-running:
     steps:
       - run:
           name: Check BrainFrame core container is running
           command: |
-            until docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe_core") >/dev/null 2>/dev/null; do
+            until docker container inspect -f {{.State.Running}}  $(docker ps -q -f name="brainframe-core") >/dev/null 2>/dev/null; do
                 sleep 0.1;
             done;
             echo "BrainFrame core container is running."
