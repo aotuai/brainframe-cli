@@ -4,9 +4,6 @@ from pathlib import Path
 
 from brainframe.cli.frozen_utils import RELATIVE_TRANSLATIONS_PATH, RELATIVE_DEFAULTS_FILE_PATH
 
-if not Path("brainframe").is_dir():
-    raise RuntimeError("PyInstaller must be run from the root of the project")
-
 # Package data files in with the executable
 data_files = [
     (str(RELATIVE_DEFAULTS_FILE_PATH.absolute()),
