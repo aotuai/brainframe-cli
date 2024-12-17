@@ -92,4 +92,4 @@ def _bool_converter(value: Union[str, bool]) -> bool:
     if isinstance(value, bool):
         return value
 
-    return strtobool(value)
+    return bool(strtobool(value))

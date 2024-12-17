@@ -36,6 +36,10 @@ boto3 = "^1.17.83"
 [tool.poetry.scripts]
 brainframe = "brainframe.cli.main:main"
 
+[tool.poetry.group.dev.dependencies]
+types-pyyaml = "^6.0.12.20240917"
+types-requests = "2.31.0"
+
 [tool.black]
 line-length = 79
 
