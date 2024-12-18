@@ -16,7 +16,7 @@ packages = [
 include = ["brainframe/cli/translations/*", "brainframe/cli/defaults.yaml"]
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.10"
+python = "^3.6.9"
 python-i18n = "^0.3"
 pyyaml = ">=3.10,<6"
 distro = "^1.5"
@@ -27,14 +27,13 @@ docker = ">4.3.1,<7.0.0"
 websocket-client = ">=0.32.0,<1.0"
 
 [tool.poetry.dev-dependencies]
-black = "*"
+black = "^19.10b0"
 mypy = "*"
 pyinstaller = "^4.0"
 isort = "*"
-boto3 = "^1.17.83"
+boto3 = "1.20.0"
 
-[tool.poetry.group.dev.dependencies]
-types-pyyaml = "^6.0.12.20240917"
+types-pyyaml = "*"
 types-requests = "2.31.0"
 
 [tool.poetry.scripts]
