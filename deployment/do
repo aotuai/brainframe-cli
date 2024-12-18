@@ -87,7 +87,7 @@ build_brainframe_cli_env() {
 
 if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
 	echo " Copyright (c) 2024 AOTU, Inc. All rights reserved."
-	cat $CMDLINE | grep echo | awk '(NR>13)' | awk '(NR<11)' | awk '{$1= ""; print $0}'
+	cat $CMDLINE | grep echo | awk '(NR>13)' | awk '(NR<13)' | awk '{$1= ""; print $0}'
 fi
 
 case $CMD in
@@ -130,7 +130,7 @@ case $CMD in
 		;;
 
 		18.04)
-		build_brainframe_cli_env Dockerfile.env pyproject.toml.py38 poetry.lock.py38 $ARGS
+		build_brainframe_cli_env Dockerfile.env.py36 pyproject.toml.py36 poetry.lock.py36 $ARGS --build-arg POETRY_VERSION="1.1.14"
 		;;
 	esac
         ;;
@@ -150,8 +150,8 @@ case $CMD in
             "
         ;;
 
-        brainframe-cli-build)
-        echo │ ./deployment/do brainframe-cli-build 20.04
+        brainframe-cli-build-wheel)
+        echo │ ./deployment/do brainframe-cli-build-wheel 20.04
 	case $ARG in
 		24.04)
 		PYTHON_TAG="3.10 3.12"
@@ -166,7 +166,7 @@ case $CMD in
 		;;
 
 		18.04)
-		PYTHON_TAG=
+		PYTHON_TAG=3.6
 		;;
 	esac
 	# build pip wheel
@@ -174,6 +174,10 @@ case $CMD in
             cp /deployment/* /brainframe-cli/ &&
             python3 deployment/build.py --versions $PYTHON_TAG
             "
+        ;;
+
+        brainframe-cli-build-pyinstaller)
+        echo │ ./deployment/do brainframe-cli-build-pyinstaller 20.04
         # build pyinstaller 
         run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
             apt-get update &&
@@ -184,6 +188,39 @@ case $CMD in
             VENV_PATH=\$(poetry env info --path) &&
             cd /brainframe-cli &&
             PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python -m PyInstaller package/main.spec
+            "
+        ;;
+
+        brainframe-cli-build-dpkg)
+        echo │ ./deployment/do brainframe-cli-build-dpkg 20.04
+	case $ARG in
+		24.04)
+		PYTHON_TAG=py310.py312
+		;;
+
+		22.04)
+		PYTHON_TAG=py310.py312
+		;;
+
+		20.04)
+		PYTHON_TAG=py38
+		;;
+
+		18.04)
+		PYTHON_TAG=py36
+		;;
+	esac
+        # build deb
+        run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
+	    cd /brainframe-cli/ &&
+	    cp -r package/debian . &&
+	    cp package/setup.py . &&
+	    cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml &&
+	    cp deployment/pyproject.toml.$PYTHON_TAG pyproject.toml &&
+	    cp deployment/poetry.lock.$PYTHON_TAG poetry.lock &&
+	    mk-build-deps --install debian/control &&
+	    poetry export --output requirements.txt &&
+            dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
             "
         ;;
 
