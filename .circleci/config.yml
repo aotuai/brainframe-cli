@@ -4,6 +4,9 @@ parameters:
   poetry-version:
     type: string
     default: "1.8.3"
+  os-poetry-version:
+    type: string
+    default: '{"bionic": "1.1.14", "focal": "1.8.3"}'
 
 
 executors:
@@ -35,6 +38,9 @@ workflows:
           matrix:
             parameters:
               os: [bionic, focal]
+              poetry-version:
+                - "1.1.14"
+                - << pipeline.parameters.poetry-version >>
       - test-installation-deb:
           requires:
             - build-deb
@@ -121,9 +127,12 @@ jobs:
     parameters:
       os:
         type: executor
+      poetry-version:
+        type: string
     executor: << parameters.os >>
     steps:
-      - install-poetry
+      - install-poetry:
+          poetry-version: << parameters.poetry-version >>
       - checkout
       - run:
           working_directory: ~/project/
@@ -259,10 +268,14 @@ jobs:
 
 commands:
   install-poetry:
+    parameters:
+      poetry-version:
+        type: string
+        default: << pipeline.parameters.poetry-version >>
     steps:
       - run: >
           curl -sSL https://install.python-poetry.org 
-          | python3 - --version << pipeline.parameters.poetry-version >>
+          | python3 - --version << parameters.poetry-version >>
       # Add to the PATH
       - run: echo 'export PATH=$HOME/.local/bin:$PATH' >> $BASH_ENV
   assert-core-container-running:
