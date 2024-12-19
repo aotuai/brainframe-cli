@@ -188,8 +188,8 @@ jobs:
             - dist/*
 
   test-installation-deb:
-    machine:
-      image: aotuai/test-ubuntu-20.04:7d3e7d
+    docker:
+      - image: aotuai/test-ubuntu-20.04:7d3e7d
     steps:
       - run: sudo apt-get update
       - attach_workspace:
