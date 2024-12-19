@@ -24,6 +24,21 @@ dind_help() {
         echo ""
 }
 
+docker_tag_if_succeeded() {
+        IMAGE=$1
+        TAG=$2
+        if [ $BUILD_STATUS -eq 0 ]; then
+                docker tag $IMAGE:latest $IMAGE:$TAG
+        fi
+}
+
+SHORT_COMMIT_ID=$(git rev-parse --short HEAD)
+if [[ " $ARGS " =~ " --no-cache " ]]; then
+    COMMIT=$SHORT_COMMIT_ID--no-cache
+else
+    COMMIT=$SHORT_COMMIT_ID
+fi
+
 build_ubuntu_docker() {
     local UBUNTU_VERSION=$1
     local ARGS="${@:2}"
@@ -71,7 +86,7 @@ build_brainframe_cli_env() {
     local UBUNTU_VERSION=$4
     local ADDITIONAL_ARGS=${@:5}
 
-    local IMAGE_TAG="brainframe-cli-env-${UBUNTU_VERSION}"
+    local IMAGE_TAG="aotuai/brainframe-cli-env-${UBUNTU_VERSION}"
 
     # Build the Docker image
     DOCKER_BUILDKIT=1 docker build \
@@ -83,6 +98,8 @@ build_brainframe_cli_env() {
         $ADDITIONAL_ARGS \
         --tag "$IMAGE_TAG" \
         .
+    BUILD_STATUS=$?
+    docker_tag_if_succeeded $IMAGE_TAG $COMMIT $?
 }
 
 if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
