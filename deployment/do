@@ -43,12 +43,16 @@ build_ubuntu_docker() {
     local UBUNTU_VERSION=$1
     local ARGS="${@:2}"
 
+    local IMAGE_TAG="aotuai/test-ubuntu-${UBUNTU_VERSION}"
+
     DOCKER_BUILDKIT=1 docker build \
         --file deployment/Dockerfile.ubuntu \
         --build-arg UBUNTU_VERSION="$UBUNTU_VERSION" \
         $ARGS \
-        --tag "test-ubuntu-${UBUNTU_VERSION}" \
+        --tag "$IMAGE_TAG" \
         .
+    BUILD_STATUS=$?
+    docker_tag_if_succeeded $IMAGE_TAG $COMMIT $?
 }
 
 run_docker() {
