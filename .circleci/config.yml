@@ -150,20 +150,21 @@ jobs:
       - checkout
       - run:
           command: |
-            echo "OS parameter value: << parameters.os >>"
-            if [ "<< parameters.os >>" = "bionic" ]; then
-              echo 'export PY_TAG="<< pipeline.parameters.py36-tag >>"' >> $BASH_ENV
-            elif [ "<< parameters.os >>" = "focal" ]; then
-              echo 'export PY_TAG="<< pipeline.parameters.py38-tag >>"' >> $BASH_ENV
-            else
-              echo 'export PY_TAG="<< pipeline.parameters.py310-tag >>"' >> $BASH_ENV
-            fi
+            case "$CIRCLE_JOB" in
+              *bionic*)
+                echo 'export PY_TAG="<< pipeline.parameters.py36-tag >>"' >> $BASH_ENV
+                ;;
+              *focal*)
+                echo 'export PY_TAG="<< pipeline.parameters.py38-tag >>"' >> $BASH_ENV
+                ;;
+              *)
+                echo 'export PY_TAG="<< pipeline.parameters.py310-tag >>"' >> $BASH_ENV
+                ;;
+            esac
             source $BASH_ENV
-            echo "Final PY_TAG value: $PY_TAG"
       - run:
           working_directory: ~/project/
           command: |
-            echo "INPUT PY_TAG value: $PY_TAG"
             cp -r package/debian .
             cp package/setup.py .
             cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml
