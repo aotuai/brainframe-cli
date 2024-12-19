@@ -220,7 +220,7 @@ case $CMD in
 	    cp deployment/poetry.lock.$PYTHON_TAG poetry.lock &&
 	    mk-build-deps --install debian/control &&
 	    poetry export --output requirements.txt &&
-            dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
+            PATH=./deployment:\$PATH dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
             "
         ;;
 
