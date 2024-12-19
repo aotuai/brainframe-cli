@@ -9,10 +9,10 @@ parameters:
 executors:
   focal:
     docker:
-      - image: aotuai/brainframe-cli-env-20.04:7d3e7d
+      - image: aotuai/brainframe-cli-env-20.04:4bbabb5--no-cache
   bionic:
     docker:
-      - image: aotuai/brainframe-cli-env-18.04:7d3e7d
+      - image: aotuai/brainframe-cli-env-18.04:4bbabb5--no-cache
 
 
 workflows:
@@ -123,10 +123,6 @@ jobs:
         type: executor
     executor: << parameters.os >>
     steps:
-      - run: apt-get update
-      - run: apt-get install -y software-properties-common dpkg-dev devscripts equivs python3-pip
-      - run: add-apt-repository -y ppa:jyrki-pulliainen/dh-virtualenv
-      - run: apt-get install -y dh-virtualenv
       - install-poetry
       - checkout
       - run:
