@@ -4,15 +4,27 @@ parameters:
   poetry-version:
     type: string
     default: "1.8.3"
+  old-poetry-version:
+    type: string
+    default: "1.1.14"
+  py36-tag:
+    type: string
+    default: "py36"
+  py38-tag:
+    type: string
+    default: "py38"
+  py310-tag:
+    type: string
+    default: "py310.py312"
 
 
 executors:
   focal:
     docker:
-      - image: aotuai/brainframe-cli-env-20.04:7d3e7d
+      - image: aotuai/brainframe-cli-env-20.04:4bbabb5--no-cache
   bionic:
     docker:
-      - image: aotuai/brainframe-cli-env-18.04:7d3e7d
+      - image: aotuai/brainframe-cli-env-18.04:4bbabb5--no-cache
 
 
 workflows:
@@ -35,6 +47,14 @@ workflows:
           matrix:
             parameters:
               os: [bionic, focal]
+              poetry-version:
+                - << pipeline.parameters.old-poetry-version >>
+                - << pipeline.parameters.poetry-version >>
+            exclude:
+              - os: bionic
+                poetry-version: << pipeline.parameters.poetry-version >>
+              - os: focal
+                poetry-version: << pipeline.parameters.old-poetry-version >>
       - test-installation-deb:
           requires:
             - build-deb
@@ -121,27 +141,40 @@ jobs:
     parameters:
       os:
         type: executor
+      poetry-version:
+        type: string
     executor: << parameters.os >>
     steps:
-      - run: apt-get update
-      - run: apt-get install -y software-properties-common dpkg-dev devscripts equivs python3-pip
-      - run: add-apt-repository -y ppa:jyrki-pulliainen/dh-virtualenv
-      - run: apt-get install -y dh-virtualenv
-      - install-poetry
+      - install-poetry:
+          poetry-version: << parameters.poetry-version >>
       - checkout
       - run:
-          working_directory: ~/project/
           command: |
-              cp -r package/debian .
-              cp package/setup.py .
-              cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml
-              cp deployment/pyproject.toml.py310.py312 pyproject.toml
-              cp deployment/poetry.lock.py310.py312 poetry.lock
+            case "$CIRCLE_JOB" in
+              *bionic*)
+                echo 'export PY_TAG="<< pipeline.parameters.py36-tag >>"' >> $BASH_ENV
+                ;;
+              *focal*)
+                echo 'export PY_TAG="<< pipeline.parameters.py38-tag >>"' >> $BASH_ENV
+                ;;
+              *)
+                echo 'export PY_TAG="<< pipeline.parameters.py310-tag >>"' >> $BASH_ENV
+                ;;
+            esac
+            source $BASH_ENV
       - run:
           working_directory: ~/project/
           command: |
-              mk-build-deps --install debian/control
-              poetry export --output requirements.txt
+            cp -r package/debian .
+            cp package/setup.py .
+            cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml
+            cp deployment/pyproject.toml.${PY_TAG} pyproject.toml
+            cp deployment/poetry.lock.${PY_TAG} poetry.lock
+      - run:
+          working_directory: ~/project/
+          command: |
+            mk-build-deps --install debian/control
+            poetry export --output requirements.txt
       - run: dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
       - run: mkdir dist
       - run: |
@@ -155,25 +188,27 @@ jobs:
             - dist/*
 
   test-installation-deb:
-    machine:
-      image: aotuai/test-ubuntu-20.04:7d3e7d
+    docker:
+      - image: aotuai/test-ubuntu-20.04:7d3e7d
     steps:
-      - run: sudo apt-get update
       - attach_workspace:
           at: /tmp/workspace
-      - run: sudo apt-get install /tmp/workspace/dist/brainframe-cli-focal.deb
-      - run: sudo brainframe install --noninteractive
-      - run: sudo brainframe compose up -d
+      - run:
+          command: |
+            apt-get -y install /tmp/workspace/dist/brainframe-cli-focal.deb
+            export LOGNAME=root
+            brainframe install --noninteractive
+            brainframe compose up -d
       - assert-core-container-running
       - assert-core-responds-to-http
-      - run: sudo brainframe uninstall --noninteractive
+      - run: brainframe uninstall --noninteractive
       - assert-uninstalled-data-preserved:
           install_path: /usr/share/brainframe
           data_path: /var/lib/brainframe
 
   upload-to-pypi:
     docker:
-      - image: cimg/python:3.8
+      - image: aotuai/brainframe-cli-env-20.04:7d3e7d
     environment:
       POETRY_HTTP_BASIC_PYPI_USERNAME: __token__
     steps:
@@ -191,10 +226,24 @@ jobs:
       - checkout
       - install-poetry
       - run:
+          command: |
+            case "$CIRCLE_JOB" in
+              *bionic*)
+                echo 'export PY_TAG="<< pipeline.parameters.py36-tag >>"' >> $BASH_ENV
+                ;;
+              *focal*)
+                echo 'export PY_TAG="<< pipeline.parameters.py38-tag >>"' >> $BASH_ENV
+                ;;
+              *)
+                echo 'export PY_TAG="<< pipeline.parameters.py310-tag >>"' >> $BASH_ENV
+                ;;
+            esac
+            source $BASH_ENV
+      - run:
           working_directory: ~/project/
           command: |
-              cp deployment/pyproject.toml.py310.py312 pyproject.toml
-              cp deployment/poetry.lock.py310.py312 poetry.lock
+              cp deployment/pyproject.toml.${PY_TAG} pyproject.toml
+              cp deployment/poetry.lock.${PY_TAG} poetry.lock
               sudo $(which poetry) install
       - run: sudo $(which poetry) run brainframe install --noninteractive
       - run: sudo $(which poetry) run brainframe compose up -d
@@ -235,12 +284,31 @@ jobs:
 
   upload-binary:
     docker:
-      - image: cimg/python:3.8
+      - image: aotuai/brainframe-cli-env-20.04:7d3e7d
     steps:
       - attach_workspace:
           at: /tmp/workspace
       - checkout
-      - run: poetry install
+      - run:
+          command: |
+            export PYTHON_VERSION=$(python --version 2>&1 | cut -d" " -f2)
+            case "${PYTHON_VERSION%.*}" in
+              3.6)
+                echo 'export PY_TAG="<< pipeline.parameters.py36-tag >>"' >> $BASH_ENV
+                ;;
+              3.8)
+                echo 'export PY_TAG="<< pipeline.parameters.py38-tag >>"' >> $BASH_ENV
+                ;;
+              *)
+                echo 'export PY_TAG="<< pipeline.parameters.py310-tag >>"' >> $BASH_ENV
+                ;;
+            esac
+            source $BASH_ENV
+      - run:
+          command: |
+             cp deployment/pyproject.toml.${PY_TAG} pyproject.toml
+             cp deployment/poetry.lock.${PY_TAG} poetry.lock
+             poetry install
       - run: poetry run python package/upload_binary.py --binary-path /tmp/workspace/dist/brainframe
 
   test-installation-binary:
@@ -263,10 +331,14 @@ jobs:
 
 commands:
   install-poetry:
+    parameters:
+      poetry-version:
+        type: string
+        default: << pipeline.parameters.poetry-version >>
     steps:
       - run: >
           curl -sSL https://install.python-poetry.org 
-          | python3 - --version << pipeline.parameters.poetry-version >>
+          | python3 - --version << parameters.poetry-version >>
       # Add to the PATH
       - run: echo 'export PATH=$HOME/.local/bin:$PATH' >> $BASH_ENV
   assert-core-container-running:
