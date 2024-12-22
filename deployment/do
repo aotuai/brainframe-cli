@@ -40,13 +40,15 @@ else
 fi
 
 build_ubuntu_docker() {
-    local UBUNTU_VERSION=$1
-    local ARGS="${@:2}"
+    local DOCKERFILE=$1
+    local TAG_PREFIX=$2
+    local UBUNTU_VERSION=$3
+    local ARGS="${@:4}"
 
-    local IMAGE_TAG="aotuai/test-ubuntu-${UBUNTU_VERSION}"
+    local IMAGE_TAG="${TAG_PREFIX}-${UBUNTU_VERSION}"
 
     DOCKER_BUILDKIT=1 docker build \
-        --file deployment/Dockerfile.ubuntu \
+        --file $DOCKERFILE \
         --build-arg UBUNTU_VERSION="$UBUNTU_VERSION" \
         $ARGS \
         --tag "$IMAGE_TAG" \
@@ -108,7 +110,7 @@ build_brainframe_cli_env() {
 
 if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
 	echo " Copyright (c) 2024 AOTU, Inc. All rights reserved."
-	cat $CMDLINE | grep echo | awk '(NR>13)' | awk '(NR<13)' | awk '{$1= ""; print $0}'
+	cat $CMDLINE | grep echo | awk '(NR>13)' | awk '(NR<14)' | awk '{$1= ""; print $0}'
 fi
 
 case $CMD in
@@ -120,9 +122,14 @@ case $CMD in
 	echo ┌─────── deploy brainframe-cli ──────────────────────────
 	;;
 
+        brainframe-cli-build)
+        echo │ ./deployment/do brainframe-cli-build 20.04 # --no-cache
+        build_ubuntu_docker deployment/Dockerfile.brainframe-cli "aotuai/brainframe-cli" $ARGS
+        ;;
+
         ubuntu-build)
-        echo ├ ./deployment/do ubuntu-build 20.04 # --no-cache
-        build_ubuntu_docker $ARGS
+        echo │ ./deployment/do ubuntu-build 20.04 # --no-cache
+        build_ubuntu_docker deployment/Dockerfile.ubuntu "aotuai/test-ubuntu" $ARGS
         ;;
 
         ubuntu-run)
@@ -136,7 +143,7 @@ case $CMD in
 	;;
 
         brainframe-cli-env-build)
-        echo ├ ./deployment/do brainframe-cli-env-build 20.04 # --no-cache
+        echo │ ./deployment/do brainframe-cli-env-build 20.04 # --no-cache
 	case $ARG in
 		24.04)
 		build_brainframe_cli_env Dockerfile.env.py312 pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS

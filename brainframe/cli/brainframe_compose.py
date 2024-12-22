@@ -55,7 +55,7 @@ def get_docker_compose_command():
 
 
 def run(install_path: Path, commands: List[str]) -> None:
-    _assert_has_docker_permissions()
+    assert_has_docker_permissions()
 
     compose_path = install_path / "docker-compose.yml"
 
@@ -145,7 +145,7 @@ def check_existing_version(install_path: Path) -> str:
     return version
 
 
-def _assert_has_docker_permissions() -> None:
+def assert_has_docker_permissions() -> None:
     """Fails if the user does not have permissions to interact with Docker"""
     if not (os_utils.is_root() or os_utils.currently_in_group("docker")):
         error_message = (

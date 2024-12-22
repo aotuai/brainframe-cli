@@ -11,6 +11,7 @@ en:
       info         Provides information about the BrainFrame server
       compose      Runs all following commands and flags through docker-compose
       uninstall    Uninstalls the BrainFrame server
+      shell        Runs preinstalled brainframe-cli commands in a docker shell
 
     Examples:
       brainframe install            Installs BrainFrame interactively

@@ -1,0 +1,11 @@
+en:
+  description: "Provides a shell to run various pre-installed cli commands to control,
+  monitor brainframe server, and download VisionCapsules"
+  usage: >-
+    brainframe shell
+
+
+    Commands:
+      brainframe-apps         Control brainframe server using REST API
+      brainframe-sys-tools    Monitor brainframe server
+      visioncapsule-tools     Download VisionCapsules from marketplace
