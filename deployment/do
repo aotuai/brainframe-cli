@@ -134,7 +134,7 @@ case $CMD in
 
         ubuntu-run)
         echo │ ./deployment/do ubuntu-run 20.04
-        run_docker /brainframe-cli /brainframe-cli/dist test-ubuntu $ARGS
+        run_docker /brainframe-cli /brainframe-cli/dist aotuai/test-ubuntu $ARGS
         ;;
 
 	comments_only)
