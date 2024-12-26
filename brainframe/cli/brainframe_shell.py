@@ -15,7 +15,7 @@ from . import print_utils
 def run() -> None:
     assert_has_docker_permissions()
 
-    image_name = "aotuai/brainframe-cli-20.04:0.3.0"
+    image_name = "aotuai/brainframe-cli-20.04:0.3.1"
     host_user = getpass.getuser()
     full_command = f"docker run -it --rm -v .:/host -w /host -e HOST_USER={host_user} {image_name} bash"
 

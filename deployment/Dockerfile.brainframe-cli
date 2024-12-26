@@ -20,7 +20,8 @@ RUN apt-get update \
 RUN pip3 install \
         brainframe-apps==0.4.3.5.post38 \
         brainframe-sys-tools==0.4.post38 \
-        visioncapsule-tools==0.4.1.post38
+        visioncapsule-tools==0.4.1.post38 \
+        openvisioncapsule-tools==0.5.1
 
 COPY deployment/brainframe-cli-entrypoint.sh /brainframe-cli-entrypoint.sh
 COPY deployment/shell.en /shell.en
