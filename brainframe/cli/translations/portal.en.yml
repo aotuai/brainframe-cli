@@ -24,6 +24,7 @@ en:
   docker-compose-path-help: "The path to the docker-compose.yml"
   unknown-command: "Unknown command: {command}"
   no-command-provided: "This is a CLI tool for managing and installing the
-  BrainFrame server.\n\n\
-  To get started with a new BrainFrame instance, run \"brainframe install\". To
-  see more options, run \"brainframe -h\"."
+  BrainFrame OS, developing BrainFrame Apps and VisionCapsules.\n\n
+  To get started with a new BrainFrame instance, run \"brainframe install\".\n
+  To use brainframe & VisionCapsule tools, run \"brainframe shell\".\n
+  To see more options, run \"brainframe -h\"."

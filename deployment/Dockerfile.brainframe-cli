@@ -23,6 +23,13 @@ RUN pip3 install \
         visioncapsule-tools==0.4.1.post38 \
         openvisioncapsule-tools==0.5.1
 
+# protobuf and numpy versions are run-time dependencies for openvisioncapsule-tools
+# @todo brainframe-apps & brainframe-sys-tools are installing newer versions of
+# the two modules which seems unnecessary.
+RUN pip3 install \
+        protobuf==3.20.3 \
+        numpy==1.19.5
+
 COPY deployment/brainframe-cli-entrypoint.sh /brainframe-cli-entrypoint.sh
 COPY deployment/shell.en /shell.en
 RUN chmod +x /brainframe-cli-entrypoint.sh
