@@ -12,10 +12,10 @@ def shell():
     args = _parse_args()
     brainframe_shell.run()
 
+
 def _parse_args():
     parser = ArgumentParser(
         description=i18n.t("shell.description"), usage=i18n.t("shell.usage")
     )
 
     return subcommand_parse_args(parser)
-

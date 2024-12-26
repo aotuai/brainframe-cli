@@ -1,15 +1,15 @@
+import getpass
 import os
 import subprocess
 import sys
-import getpass
 
 import i18n
 import requests
 import yaml
 
-from .brainframe_compose import assert_has_docker_permissions
 from . import os_utils
 from . import print_utils
+from .brainframe_compose import assert_has_docker_permissions
 
 
 def run() -> None:
@@ -23,7 +23,6 @@ def run() -> None:
 
     try:
         subprocess.run(full_command, shell=True, check=True)
-    except Exception as e: # subprocess.CalledProcessError:
+    except Exception as e:  # subprocess.CalledProcessError:
         print(f"Error: Failed to pull or run the image. Details: {e}")
         sys.exit(1)
-
