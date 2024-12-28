@@ -17,7 +17,8 @@ def run() -> None:
 
     image_name = "aotuai/brainframe-cli-20.04:0.3.1"
     host_user = getpass.getuser()
-    full_command = f"docker run -it --rm -v .:/host -w /host -e HOST_USER={host_user} {image_name} bash"
+    host_dir = os.getcwd()
+    full_command = f"docker run -it --rm -v {host_dir}:/host -w /host -e HOST_USER={host_user} {image_name} bash"
 
     print_utils.translate(full_command, color=print_utils.Color.GREEN)
 
