@@ -23,7 +23,7 @@ RUN pip3 install \
         brainframe-apps==0.4.5.1 \
         brainframe-sys-tools==0.4.5.1 \
         visioncapsule-tools==0.4.5.1 \
-        openvisioncapsule-tools==0.5.3
+        openvisioncapsule-tools==0.5.4
 
 # protobuf and numpy versions are run-time dependencies for openvisioncapsule-tools
 # @todo brainframe-apps & brainframe-sys-tools are installing newer versions of
