@@ -1,0 +1,21 @@
+services:
+  mgmt:
+    image: devaotuai/brainframe-webclient:latest
+    restart: unless-stopped
+    privileged: true
+    environment:
+      DEPLOYMENT_MODE: "central"
+      VC_SERVER_HOST: "${DEFAULT_HOST_IP}"
+      RTSP_PORT: 18554
+      HLS_PORT: 18888
+      MTX_PROTOCOLS: tcp
+      MTX_WEBRTCADDITIONALHOSTS: "${DEFAULT_HOST_IP:-127.0.0.1}"
+    ports:
+      - "19090:9090"
+      - "18888:8888"
+      - "18554:8554"
+    volumes:
+      - /var/local/brainframe-mgmt:/persistent
+      - "/dev/bus/usb:/dev/bus/usb"
+      - "/dev/dri:/dev/dri"
+      - "/etc/localtime:/etc/localtime"

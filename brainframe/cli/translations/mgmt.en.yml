@@ -1,0 +1,11 @@
+en:
+  description: "Install and control the BrainFrame Mgmt"
+  usage: >-
+    brainframe mgmt
+
+    Commands:
+      install         Install the BrainFrame Mgmt
+      up -d           Start the BrainFrame Mgmt
+      down            Stop the BrainFrame Mgmt
+      restart         Restart the BrainFrame Mgmt
+      logs -f         Print the logs of the BrainFrame Mgmt

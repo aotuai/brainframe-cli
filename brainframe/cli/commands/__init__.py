@@ -4,6 +4,7 @@ from .info import info
 from .install import install
 from .self_update import self_update
 from .shell import shell
+from .mgmt import mgmt
 from .uninstall import uninstall
 from .update import update
 from .utils import by_name
