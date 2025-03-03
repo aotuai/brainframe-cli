@@ -6,11 +6,9 @@ import sys
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import commands
-from brainframe.cli import config
-from brainframe.cli import frozen_utils
-from brainframe.cli import os_utils
-from brainframe.cli import print_utils
+
+from brainframe.cli import (commands, config, frozen_utils, os_utils,
+                            print_utils)
 
 
 def main():

@@ -1,12 +1,10 @@
 from argparse import ArgumentParser
 
 import i18n
-from brainframe.cli import brainframe_compose
-from brainframe.cli import config
-from brainframe.cli import print_utils
 
-from .utils import command
-from .utils import subcommand_parse_args
+from brainframe.cli import brainframe_compose, config, print_utils
+
+from .utils import command, subcommand_parse_args
 
 
 @command("info")

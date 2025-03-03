@@ -5,17 +5,13 @@ import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Optional
-from typing import Tuple
-from typing import Union
+from typing import Optional, Tuple, Union
 
 import i18n
 import requests
-from brainframe.cli import __version__
-from brainframe.cli import config
-from brainframe.cli import frozen_utils
-from brainframe.cli import print_utils
 from packaging import version
+
+from brainframe.cli import __version__, config, frozen_utils, print_utils
 
 from .utils import command
 
@@ -86,9 +82,7 @@ def self_update():
         shutil.copy2(new_executable.name, executable_path)
 
     print()
-    print_utils.translate(
-        "self-update.complete", color=print_utils.Color.GREEN
-    )
+    print_utils.translate("self-update.complete", color=print_utils.Color.GREEN)
 
 
 def _latest_version(

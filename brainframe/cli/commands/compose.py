@@ -1,7 +1,6 @@
 import sys
 
-from brainframe.cli import brainframe_compose
-from brainframe.cli import config
+from brainframe.cli import brainframe_compose, config
 
 from .utils import command
 

@@ -90,9 +90,7 @@ def clean():
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Build Python wheels or clean project"
-    )
+    parser = argparse.ArgumentParser(description="Build Python wheels or clean project")
     parser.add_argument(
         "--clean",
         action="store_true",

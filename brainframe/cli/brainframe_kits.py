@@ -1,24 +1,21 @@
 import getpass
 import os
+import shutil
 import subprocess
 import sys
-from typing import List
-
-import shutil
 from argparse import ArgumentParser
 from pathlib import Path
+from typing import List
 
 import i18n
-from brainframe.cli import brainframe_compose
-from brainframe.cli import dependencies
-from brainframe.cli import frozen_utils
 
-from . import os_utils, config
-from . import print_utils
+from brainframe.cli import brainframe_compose, dependencies, frozen_utils
+
+from . import config, os_utils, print_utils
 from .brainframe_compose import assert_has_docker_permissions
 
-install_path = Path("/usr/local/share/brainframe-mgmt")
-data_path = Path("/var/local/brainframe-mgmt")
+install_path = Path("/usr/local/share/brainframe-kits")
+data_path = Path("/var/local/brainframe-kits")
 
 
 def install(commands: List[str]):
@@ -38,9 +35,7 @@ def install(commands: List[str]):
         if args.noninteractive:
             add_to_group = args.add_to_docker_group
         else:
-            add_to_group = print_utils.ask_yes_no(
-                "install.ask-add-to-docker-group"
-            )
+            add_to_group = print_utils.ask_yes_no("install.ask-add-to-docker-group")
 
         if add_to_group:
             os_utils.add_to_group("docker")
@@ -64,33 +59,28 @@ def install(commands: List[str]):
             os_utils.add_to_group("brainframe")
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    docker_compose_mgmt = os.path.join(script_dir, "docker-compose-mgmt.yml")
+    docker_compose_mgmt = os.path.join(script_dir, "docker-compose-kits.yml")
     install_file = install_path.joinpath("docker-compose.yml")
     shutil.copy(docker_compose_mgmt, install_file)
 
     print_utils.translate("install.downloading-images")
     brainframe_compose.run(install_path, ["pull"])
 
-    print()
-    print_utils.translate("install.complete", print_utils.Color.GREEN)
-
-    if not args.noninteractive and print_utils.ask_yes_no("install.ask-start"):
-        brainframe_compose.run(install_path, ["up", "-d"])
-        print()
-        print_utils.translate("install.running", print_utils.Color.GREEN)
-    else:
-        print_utils.translate("install.how-to-start")
-
-    print(f"The BrainFrame Mgmt was installed:")
+    print(f"The BrainFrame Kits was installed:")
     print(f"\t\t\t\t1) deployment path: {install_path}")
     print(f"\t\t\t\t2) data path: {data_path}")
+
+    print_utils.translate("kits.description")
+    print_utils.translate("kits.usage")
 
 
 def start(commands: List[str]):
     brainframe_compose.run(install_path, commands)
 
+
 def stop(commands: List[str]):
     brainframe_compose.run(install_path, ["up", "-d"])
+
 
 def run(commands: List[str]) -> None:
     assert_has_docker_permissions()
@@ -101,24 +91,11 @@ def run(commands: List[str]) -> None:
         assert_has_docker_permissions()
         brainframe_compose.run(install_path, commands)
 
-    # image_name = "devaotuai/brainframe-webclient:latest"
-    # host_user = getpass.getuser()
-    # host_dir = os.getcwd()
-    # full_command = f"docker run -it --restart=always -d -v {host_dir}:/persistent -w /host -e HOST_USER={host_user} {image_name}"
-    #
-    # print_utils.translate(full_command, color=print_utils.Color.GREEN)
-    #
-    # try:
-    #     subprocess.run(full_command, shell=True, check=True)
-    # except Exception as e:  # subprocess.CalledProcessError:
-    #     print(f"Error: Failed to pull or run the image. Details: {e}")
-    #     sys.exit(1)
-
 
 def _parse_args():
     parser = ArgumentParser(
-        description=i18n.t("mgmt.description"),
-        usage=i18n.t("mgmt.usage"),
+        description=i18n.t("kits.description"),
+        usage=i18n.t("kits.usage"),
     )
 
     parser.add_argument(

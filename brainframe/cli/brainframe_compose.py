@@ -2,26 +2,21 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 import i18n
 import requests
 import yaml
 
-from . import config
-from . import frozen_utils
-from . import os_utils
-from . import print_utils
+from . import config, frozen_utils, os_utils, print_utils
 
 # The URL to the docker-compose.yml
-BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
+BRAINFRAME_DOCKER_COMPOSE_URL = (
+    "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
+)
 # The URL to the latest tag, which is just a file containing the latest version
 # as a string
-BRAINFRAME_LATEST_TAG_URL = (
-    "https://{subdomain}aotu.ai/releases/brainframe/latest"
-)
+BRAINFRAME_LATEST_TAG_URL = "https://{subdomain}aotu.ai/releases/brainframe/latest"
 
 
 def assert_installed(install_path: Path) -> None:

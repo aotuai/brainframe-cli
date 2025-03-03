@@ -1,0 +1,11 @@
+en:
+  description: "Install and control the BrainFrame Kits"
+  usage: >-
+    brainframe kits
+
+    Commands:
+      install         Install the BrainFrame Kits
+      up -d           Start the BrainFrame Kits
+      down            Stop the BrainFrame Kits
+      restart         Restart the BrainFrame Kits
+      logs -f         Print the logs of the BrainFrame Kits
