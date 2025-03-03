@@ -7,14 +7,14 @@ services:
       DEPLOYMENT_MODE: "central"
       VC_SERVER_HOST: "${DEFAULT_HOST_IP}"
       VC_SERVER_PORT: 7090
-      RTSP_PORT: 8554
-      HLS_PORT: 8888
+      RTSP_PORT: 7554
+      HLS_PORT: 7888
       MTX_PROTOCOLS: tcp
       MTX_WEBRTCADDITIONALHOSTS: "${DEFAULT_HOST_IP:-127.0.0.1}"
     ports:
       - "7090:7090"
-      - "8554:8554"
-      - "8888:8888"
+      - "7554:7554"
+      - "7888:7888"
     volumes:
       - /var/local/brainframe-kits:/persistent
       - "/dev/bus/usb:/dev/bus/usb"
