@@ -1,7 +1,5 @@
-import getpass
 import os
 import shutil
-import subprocess
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
@@ -11,11 +9,12 @@ import i18n
 
 from brainframe.cli import brainframe_compose, dependencies, frozen_utils
 
-from . import config, os_utils, print_utils
+from . import os_utils, print_utils
 from .brainframe_compose import assert_has_docker_permissions
 
 install_path = Path("/usr/local/share/brainframe-kits")
 data_path = Path("/var/local/brainframe-kits")
+db_path = Path(f"{data_path}/brainframe-kits")
 
 
 def install(commands: List[str]):
@@ -42,6 +41,7 @@ def install(commands: List[str]):
 
     install_path.mkdir(parents=True, exist_ok=True)
     data_path.mkdir(parents=True, exist_ok=True)
+    db_path.mkdir(parents=True, exist_ok=True)
 
     # Set up permissions with the 'brainframe' group
     print_utils.translate("install.create-group-justification")
