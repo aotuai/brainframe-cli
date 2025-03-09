@@ -2,6 +2,7 @@ from .backup import backup
 from .compose import compose
 from .info import info
 from .install import install
+from .kits import kits
 from .self_update import self_update
 from .shell import shell
 from .uninstall import uninstall

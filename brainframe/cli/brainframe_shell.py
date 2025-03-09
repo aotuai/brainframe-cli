@@ -7,8 +7,7 @@ import i18n
 import requests
 import yaml
 
-from . import os_utils
-from . import print_utils
+from . import os_utils, print_utils
 from .brainframe_compose import assert_has_docker_permissions
 
 

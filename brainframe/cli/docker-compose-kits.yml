@@ -1,0 +1,38 @@
+services:
+  kits:
+    image: devaotuai/brainframe-kits:latest
+    restart: unless-stopped
+    privileged: true
+    environment:
+      DBMS_HOSTNAME: database
+      DBMS_USERNAME: user
+      DBMS_PASSWORD: password
+      DB_NAME: brainframe
+      DEPLOYMENT_MODE: "central"
+      VC_SERVER_HOST: "${DEFAULT_HOST_IP}"
+      VC_SERVER_PORT: 7090
+      RTSP_PORT: 7554
+      HLS_PORT: 7888
+      MTX_PROTOCOLS: tcp
+      MTX_WEBRTCADDITIONALHOSTS: "${DEFAULT_HOST_IP:-127.0.0.1}"
+    ports:
+      - "7090:7090"
+      - "7554:7554"
+      - "7888:7888"
+    volumes:
+      - "/var/local/brainframe-kits:/persistent"
+      - "/dev/bus/usb:/dev/bus/usb"
+      - "/dev/dri:/dev/dri"
+      - "/etc/localtime:/etc/localtime"
+    depends_on:
+      - database
+  database:
+    image: postgres:15.3-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "brainframe"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "password"
+      PGDATA: "/persistent/database"
+    volumes:
+      - "/var/local/brainframe-kits:/persistent"

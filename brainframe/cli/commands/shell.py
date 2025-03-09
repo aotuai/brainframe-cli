@@ -1,10 +1,10 @@
 from argparse import ArgumentParser
 
 import i18n
+
 from brainframe.cli import brainframe_shell
 
-from .utils import command
-from .utils import subcommand_parse_args
+from .utils import command, subcommand_parse_args
 
 
 @command("shell")

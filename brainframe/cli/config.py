@@ -1,18 +1,11 @@
 import os
 from distutils.util import strtobool
 from pathlib import Path
-from typing import Callable
-from typing import Dict
-from typing import Generic
-from typing import Optional
-from typing import Tuple
-from typing import TypeVar
-from typing import Union
+from typing import Callable, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import yaml
 
-from . import frozen_utils
-from . import print_utils
+from . import frozen_utils, print_utils
 
 T = TypeVar("T")
 
@@ -38,9 +31,7 @@ class Option(Generic[T]):
     def env_var_name(self):
         return "BRAINFRAME_" + self.name.upper()
 
-    def load(
-        self, converter: Callable[[str], T], defaults: Dict[str, str]
-    ) -> None:
+    def load(self, converter: Callable[[str], T], defaults: Dict[str, str]) -> None:
         default = defaults.get(self.name)
 
         value: Optional[str] = os.environ.get(self.env_var_name, default)

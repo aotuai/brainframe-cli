@@ -3,8 +3,7 @@ from tempfile import NamedTemporaryFile
 
 import requests
 
-from . import os_utils
-from . import print_utils
+from . import os_utils, print_utils
 
 
 class Dependency:
@@ -28,9 +27,7 @@ class Dependency:
         """
         # Only supported operating systems can request automatic installs
         if install_requested and not os_utils.is_supported():
-            print_utils.fail_translate(
-                "install.install-dependency-unsupported-os"
-            )
+            print_utils.fail_translate("install.install-dependency-unsupported-os")
 
         if shutil.which(self.command_name) is not None:
             # The command is already installed

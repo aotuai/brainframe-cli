@@ -4,15 +4,11 @@ from datetime import datetime
 from pathlib import Path
 
 import i18n
-from brainframe.cli import brainframe_compose
-from brainframe.cli import config
-from brainframe.cli import dependencies
-from brainframe.cli import os_utils
-from brainframe.cli import print_utils
 
-from .utils import command
-from .utils import requires_root
-from .utils import subcommand_parse_args
+from brainframe.cli import (brainframe_compose, config, dependencies, os_utils,
+                            print_utils)
+
+from .utils import command, requires_root, subcommand_parse_args
 
 BACKUP_DIR_FORMAT = "%Y-%m-%d_%H-%M-%S"
 
@@ -79,9 +75,7 @@ def _parse_args(data_path: Path):
     parser.add_argument(
         "--destination",
         type=Path,
-        help=i18n.t(
-            "backup.destination-help", backup_dir=data_path / "backups"
-        ),
+        help=i18n.t("backup.destination-help", backup_dir=data_path / "backups"),
     )
 
     parser.add_argument(

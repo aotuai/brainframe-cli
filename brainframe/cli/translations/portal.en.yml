@@ -12,6 +12,7 @@ en:
       compose      Runs all following commands and flags through docker-compose
       uninstall    Uninstalls the BrainFrame server
       shell        Runs preinstalled brainframe-cli commands in a docker shell
+      kits         Installs and runs preinstalled BrainFrame Kits
 
     Examples:
       brainframe install            Installs BrainFrame interactively

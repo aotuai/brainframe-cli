@@ -9,6 +9,7 @@ from io import BytesIO
 from pathlib import Path
 
 import boto3
+
 from brainframe.cli import __version__
 from brainframe.cli.print_utils import fail
 

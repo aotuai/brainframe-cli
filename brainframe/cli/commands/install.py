@@ -3,16 +3,11 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import i18n
-from brainframe.cli import brainframe_compose
-from brainframe.cli import config
-from brainframe.cli import dependencies
-from brainframe.cli import frozen_utils
-from brainframe.cli import os_utils
-from brainframe.cli import print_utils
 
-from .utils import command
-from .utils import requires_root
-from .utils import subcommand_parse_args
+from brainframe.cli import (brainframe_compose, config, dependencies,
+                            frozen_utils, os_utils, print_utils)
+
+from .utils import command, requires_root, subcommand_parse_args
 
 
 @command("install")
@@ -45,9 +40,7 @@ def install():
         if args.noninteractive:
             add_to_group = args.add_to_docker_group
         else:
-            add_to_group = print_utils.ask_yes_no(
-                "install.ask-add-to-docker-group"
-            )
+            add_to_group = print_utils.ask_yes_no("install.ask-add-to-docker-group")
 
         if add_to_group:
             os_utils.add_to_group("docker")
