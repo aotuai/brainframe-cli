@@ -41,6 +41,18 @@ using the ``compose`` command, which can be run from any directory.
 
     brainframe compose up -d
 
+The following will show logs,
+
+.. code-block::
+
+    brainframe compose logs -f core journal
+
+How to integrate the following to cleanup logs,
+
+.. code-block::
+
+    sudo truncate -s 0 $(docker inspect --format='{{.LogPath}}' brainframe-core-1 brainframe-journal-1)
+
 For more information, take a look at the `Getting Started guide`_.
 
 .. _`Getting Started guide`: https://aotu.ai/docs/getting_started/
