@@ -30,18 +30,19 @@ def update():
     existing_version = version.parse(existing_version_str)
     requested_version = version.parse(requested_version_str)
 
-    force_downgrade = False
-    if args.noninteractive:
-        # Use the --force flag to decide if downgrades are allowed
-        force_downgrade = args.force
-    else:
-        # Ask the user if downgrades should be allowed
-        if existing_version >= requested_version:
-            force_downgrade = print_utils.ask_yes_no(
-                "update.ask-force-downgrade"
-            )
+    force = args.force
+    if (
+        not force
+        and not args.noninteractive
+        and existing_version > requested_version
+    ):
+        force = print_utils.ask_yes_no(
+            "update.ask-force-downgrade",
+            existing_version=existing_version_str,
+            requested_version=requested_version_str,
+        )
 
-    if not force_downgrade:
+    if not force:
         # Fail if the requested version is not an upgrade
         if existing_version == requested_version:
             print_utils.fail_translate(
@@ -105,6 +106,7 @@ def _parse_args():
     )
 
     parser.add_argument(
+        "-f",
         "--force",
         action="store_true",
         help=i18n.t("update.force-help"),
