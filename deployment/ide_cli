@@ -150,7 +150,7 @@ case $CMD in
 		;;
 
 		22.04)
-		build_brainframe_cli_env Dockerfile.env pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS
+		build_brainframe_cli_env Dockerfile.env.py310 pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS
 		;;
 
 		20.04)
