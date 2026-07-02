@@ -123,17 +123,17 @@ case $CMD in
 	;;
 
         brainframe-cli-build)
-        echo │ ./deployment/do brainframe-cli-build 20.04 # --no-cache
+        echo │ ./deployment/ide_cli brainframe-cli-build 20.04 # --no-cache
         build_ubuntu_docker deployment/Dockerfile.brainframe-cli "aotuai/brainframe-cli" $ARGS
         ;;
 
         ubuntu-build)
-        echo │ ./deployment/do ubuntu-build 20.04 # --no-cache
+        echo │ ./deployment/ide_cli ubuntu-build 20.04 # --no-cache
         build_ubuntu_docker deployment/Dockerfile.ubuntu "aotuai/test-ubuntu" $ARGS
         ;;
 
         ubuntu-run)
-        echo │ ./deployment/do ubuntu-run 20.04
+        echo │ ./deployment/ide_cli ubuntu-run 20.04
         run_docker /brainframe-cli /brainframe-cli/dist aotuai/test-ubuntu $ARGS
         ;;
 
@@ -143,7 +143,7 @@ case $CMD in
 	;;
 
         brainframe-cli-env-build)
-        echo │ ./deployment/do brainframe-cli-env-build 20.04 # --no-cache
+        echo │ ./deployment/ide_cli brainframe-cli-env-build 20.04 # --no-cache
 	case $ARG in
 		24.04)
 		build_brainframe_cli_env Dockerfile.env.py312 pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS
@@ -164,12 +164,12 @@ case $CMD in
         ;;
 
         brainframe-cli-env-run)
-        echo │ ./deployment/do brainframe-cli-env-run 20.04
+        echo │ ./deployment/ide_cli brainframe-cli-env-run 20.04
 	run_docker /brainframe-cli /deployment brainframe-cli-env $ARGS
         ;;
 
         brainframe-cli-lint)
-        echo │ ./deployment/do brainframe-cli-lint 20.04
+        echo │ ./deployment/ide_cli brainframe-cli-lint 20.04
         run_docker /brainframe-cli /deployment brainframe-cli-env $ARG bash -c "
             cp /deployment/* /brainframe-cli/ &&
             poetry run black /brainframe-cli/ &&
@@ -179,7 +179,7 @@ case $CMD in
         ;;
 
         brainframe-cli-build-wheel)
-        echo │ ./deployment/do brainframe-cli-build-wheel 20.04
+        echo │ ./deployment/ide_cli brainframe-cli-build-wheel 20.04
 	case $ARG in
 		24.04)
 		PYTHON_TAG="3.10 3.12"
@@ -205,7 +205,7 @@ case $CMD in
         ;;
 
         brainframe-cli-build-pyinstaller)
-        echo │ ./deployment/do brainframe-cli-build-pyinstaller 20.04
+        echo │ ./deployment/ide_cli brainframe-cli-build-pyinstaller 20.04
         # build pyinstaller 
         run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
             apt-get update &&
@@ -220,7 +220,7 @@ case $CMD in
         ;;
 
         brainframe-cli-build-dpkg)
-        echo │ ./deployment/do brainframe-cli-build-dpkg 20.04
+        echo │ ./deployment/ide_cli brainframe-cli-build-dpkg 20.04
 	case $ARG in
 		24.04)
 		PYTHON_TAG=py310.py312
