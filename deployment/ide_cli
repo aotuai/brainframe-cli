@@ -165,12 +165,12 @@ case $CMD in
 
         brainframe-cli-env-run)
         echo │ ./deployment/ide_cli brainframe-cli-env-run 20.04
-	run_docker /brainframe-cli /deployment brainframe-cli-env $ARGS
+	run_docker /brainframe-cli /deployment aotuai/brainframe-cli-env $ARGS
         ;;
 
         brainframe-cli-lint)
         echo │ ./deployment/ide_cli brainframe-cli-lint 20.04
-        run_docker /brainframe-cli /deployment brainframe-cli-env $ARG bash -c "
+        run_docker /brainframe-cli /deployment aotuai/brainframe-cli-env $ARG bash -c "
             cp /deployment/* /brainframe-cli/ &&
             poetry run black /brainframe-cli/ &&
             poetry run isort /brainframe-cli/ &&
@@ -198,7 +198,7 @@ case $CMD in
 		;;
 	esac
 	# build pip wheel
-	run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
+	run_docker /brainframe-cli /brainframe-cli aotuai/brainframe-cli-env $ARG bash -c "
             cp /deployment/* /brainframe-cli/ &&
             python3 deployment/build.py --versions $PYTHON_TAG
             "
@@ -207,7 +207,7 @@ case $CMD in
         brainframe-cli-build-pyinstaller)
         echo │ ./deployment/ide_cli brainframe-cli-build-pyinstaller 20.04
         # build pyinstaller 
-        run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
+        run_docker /brainframe-cli /brainframe-cli aotuai/brainframe-cli-env $ARG bash -c "
             apt-get update &&
             apt-get install -y binutils &&
             cd /deployment &&
@@ -239,7 +239,7 @@ case $CMD in
 		;;
 	esac
         # build deb
-        run_docker /brainframe-cli /brainframe-cli brainframe-cli-env $ARG bash -c "
+        run_docker /brainframe-cli /brainframe-cli aotuai/brainframe-cli-env $ARG bash -c "
 	    cd /brainframe-cli/ &&
 	    cp -r package/debian . &&
 	    cp package/setup.py . &&
