@@ -7,23 +7,52 @@ The BrainFrame CLI is a tool for installing and managing a BrainFrame server.
 Installation
 ------------
 
-The CLI is installable with Pip. Ubuntu 18.04 and 20.04 are officially
-supported, but other versions of Linux are expected to work as well.
+The recommended installation is the standalone Linux x86_64 executable. It
+includes its own Python runtime, so the host Python is not used. Ubuntu is
+the officially supported distribution, but other Linux distributions are
+expected to work as well.
 
 On Ubuntu:
 
-.. code-block::
+.. code-block:: bash
+
+    curl -fL https://aotu.ai/releases/brainframe-cli/brainframe -o brainframe
+    chmod +x brainframe
+    sudo install -m 755 brainframe /usr/local/bin/brainframe
+    brainframe --version
+
+Alternative: install with pip
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pip remains available for environments that prefer Python package management:
+
+.. code-block:: bash
 
     sudo -H pip3 install brainframe-cli
+
+On systems where pip refuses system-wide installs, use a virtual environment
+instead:
+
+.. code-block:: bash
+
+    python3 -m venv my_venv
+    source my_venv/bin/activate
+    pip3 install brainframe-cli
 
 Upgrading
 ---------
 
-Pip can be used to upgrade to a new version.
+The standalone CLI can update itself after a new release is published:
 
-.. code-block::
+.. code-block:: bash
 
-    sudo -H pip3 install --upgrade brainframe-cli
+    sudo brainframe self-update
+
+For a pip installation, upgrade with ``pip3 install --upgrade brainframe-cli``
+instead.
+
+``brainframe shell`` runs developer tools in a separate Docker image. Set
+``BRAINFRAME_SHELL_IMAGE`` to select a newer published image when available.
 
 Usage
 -----
@@ -33,6 +62,9 @@ To install BrainFrame, simply run the ``install`` command as root:
 .. code-block::
 
     sudo brainframe install
+
+``brainframe uninstall --noninteractive`` skips confirmation and deletes the
+server install directory. Add ``--delete-data`` to delete the data directory.
 
 BrainFrame can then be controlled like a normal Docker Compose application
 using the ``compose`` command, which can be run from any directory.
