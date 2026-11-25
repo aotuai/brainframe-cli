@@ -3,6 +3,7 @@ a CloudFront invalidation to make those changes live.
 """
 
 import argparse
+import hashlib
 import os
 import uuid
 from io import BytesIO
@@ -18,12 +19,15 @@ try:
     s3 = boto3.client("s3")
     cloudfront = boto3.client("cloudfront")
 except NoRegionError:
-    fail("AWS region is not configured. Use ide_cli push pyinstaller-to-aws --profile <name> or add --region <region>.")
+    fail(
+        "AWS region is not configured. Use ide_cli push pyinstaller-to-aws --profile <name> or add --region <region>."
+    )
 
 
 _COMPANY_NAMES = ["aotu", "dilililabs"]
 _BINARY_KEY = "releases/brainframe-cli/brainframe"
 _LATEST_KEY = "releases/brainframe-cli/latest"
+_CHECKSUM_KEY = "releases/brainframe-cli/brainframe.sha256"
 
 
 def main():
@@ -51,6 +55,16 @@ def main():
         Key=_BINARY_KEY,
     )
 
+    digest = hashlib.sha256()
+    with args.binary_path.open("rb") as binary:
+        for block in iter(lambda: binary.read(1024 * 1024), b""):
+            digest.update(block)
+    s3.upload_fileobj(
+        Fileobj=BytesIO(digest.hexdigest().encode("ascii")),
+        Bucket=bucket_name,
+        Key=_CHECKSUM_KEY,
+    )
+
     # Upload a latest tag, containing the latest version number
     version_tag_file = BytesIO(__version__.encode("utf-8"))
     s3.upload_fileobj(
@@ -73,6 +87,7 @@ def main():
 
     print(f"Binary:      s3://{bucket_name}/{_BINARY_KEY}")
     print(f"Version tag: s3://{bucket_name}/{_LATEST_KEY}")
+    print(f"Checksum:    s3://{bucket_name}/{_CHECKSUM_KEY}")
     if stage in ("dev", "prod"):
         host = "staging.aotu.ai" if stage == "dev" else "aotu.ai"
         print(f"Download:    https://{host}/{_BINARY_KEY}")
@@ -99,7 +114,11 @@ def _get_parameter(name: str) -> str:
     except ssm.exceptions.ParameterNotFound:
         stage = os.environ.get("STAGE", "dev")
         profile = os.environ.get("AWS_PROFILE", "default")
-        hint = " Add --prod to select the production bucket." if stage == "dev" else ""
+        hint = (
+            " Add --prod to select the production bucket."
+            if stage == "dev"
+            else ""
+        )
         fail(
             f"AWS SSM parameter not found: {name} "
             f"(profile: {profile}, region: {ssm.meta.region_name}).{hint}"

@@ -10,6 +10,8 @@ en:
   HTTP %{status_code} - %{error_message}"
   error-downloading: "Error while downloading the new version: HTTP
   %{status_code} - %{error_message}"
+  invalid-checksum: "The release checksum is missing or invalid. The current executable was preserved."
+  invalid-download: "The downloaded executable failed validation: %{error}. The current executable was preserved."
 
   already-up-to-date: "The CLI is already up-to-date. (Current version:
   %{current_version}, latest version: %{latest_version})"
