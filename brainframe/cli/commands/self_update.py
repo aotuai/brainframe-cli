@@ -7,7 +7,6 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Optional
 from typing import Tuple
-from typing import Union
 
 import i18n
 import requests
@@ -94,7 +93,7 @@ def self_update():
 def _latest_version(
     url_prefix: str,
     credentials: Optional[Tuple[str, str]],
-) -> Union[version.LegacyVersion, version.Version]:
+) -> version.Version:
     latest_tag_url = _LATEST_TAG_URL.format(prefix=url_prefix)
     response = requests.get(latest_tag_url, auth=credentials)
 
@@ -105,7 +104,7 @@ def _latest_version(
             error_message=response.text,
         )
 
-    return version.parse(response.text)
+    return version.Version(response.text)
 
 
 def _parse_args():
