@@ -1,7 +1,9 @@
 import os
+import stat
 import subprocess
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -9,11 +11,14 @@ from typing import Tuple
 import i18n
 import requests
 import yaml
+from packaging.version import InvalidVersion
+from packaging.version import Version
 
 from . import config
 from . import frozen_utils
 from . import os_utils
 from . import print_utils
+from .network import HTTP_TIMEOUT
 
 # The URL to the docker-compose.yml
 BRAINFRAME_DOCKER_COMPOSE_URL = "https://{subdomain}aotu.ai/releases/brainframe/{version}/docker-compose.yml"
@@ -108,7 +113,9 @@ def download(target: Path, version: str = "latest") -> None:
         subdomain="staging." if config.is_staging.value else "",
         version=version,
     )
-    response = requests.get(url, auth=credentials, stream=True)
+    response = requests.get(
+        url, auth=credentials, stream=True, timeout=HTTP_TIMEOUT
+    )
     if not response.ok:
         print_utils.fail_translate(
             "general.error-downloading-docker-compose",
@@ -116,12 +123,38 @@ def download(target: Path, version: str = "latest") -> None:
             error_message=response.text,
         )
 
-    target.write_text(response.text)
+    _replace_compose_file(target, response.text)
 
     if os_utils.is_root():
         # Fix the permissions of the docker-compose.yml so that the BrainFrame
         # group can edit it
         os_utils.give_brainframe_group_rw_access([target])
+
+
+def _replace_compose_file(target: Path, contents: str) -> None:
+    temporary_path = None
+    try:
+        with NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            prefix=".brainframe-compose-",
+            dir=str(target.parent),
+            delete=False,
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            temporary.write(contents)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+
+        if target.exists():
+            existing = target.stat()
+            temporary_path.chmod(stat.S_IMODE(existing.st_mode))
+            if temporary_path.stat().st_gid != existing.st_gid:
+                os.chown(str(temporary_path), -1, existing.st_gid)
+        os.replace(str(temporary_path), str(target))
+    finally:
+        if temporary_path is not None and temporary_path.exists():
+            temporary_path.unlink()
 
 
 def get_latest_version() -> str:
@@ -135,8 +168,18 @@ def get_latest_version() -> str:
 
     # Check what the latest version is
     url = BRAINFRAME_LATEST_TAG_URL.format(subdomain=subdomain)
-    response = requests.get(url, auth=credentials)
-    return response.text
+    response = requests.get(url, auth=credentials, timeout=HTTP_TIMEOUT)
+    if not response.ok:
+        print_utils.fail_translate(
+            "general.error-getting-latest-version",
+            status_code=response.status_code,
+        )
+    latest_version = response.text.strip()
+    try:
+        Version(latest_version)
+    except InvalidVersion:
+        print_utils.fail_translate("general.invalid-latest-version")
+    return latest_version
 
 
 def check_existing_version(install_path: Path) -> str:

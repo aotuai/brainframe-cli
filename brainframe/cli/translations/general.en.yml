@@ -6,6 +6,8 @@ en:
   downloading-docker-compose: "Downloading docker-compose.yml..."
   error-downloading-docker-compose: "Error while downloading
   docker-compose.yml: HTTP %{status_code} - %{error_message}"
+  error-getting-latest-version: "Could not check the latest BrainFrame version: HTTP %{status_code}."
+  invalid-latest-version: "The latest BrainFrame version response is invalid."
   noninteractive-help: "Prevents this command from prompting for input and
   pulls configuration from flags instead. This can be useful for scripts."
   adding-to-group: "Adding user to the %{group} group"

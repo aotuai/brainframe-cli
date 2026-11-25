@@ -5,6 +5,7 @@ import requests
 
 from . import os_utils
 from . import print_utils
+from .network import HTTP_TIMEOUT
 
 
 class Dependency:
@@ -59,7 +60,12 @@ class Dependency:
 
 
 def _install_docker():
-    response = requests.get("https://get.docker.com")
+    response = requests.get("https://get.docker.com", timeout=HTTP_TIMEOUT)
+    if not response.ok:
+        print_utils.fail_translate(
+            "install.get-docker-script-http-error",
+            status_code=response.status_code,
+        )
 
     with NamedTemporaryFile("w") as get_docker_script:
         get_docker_script.write(response.text)

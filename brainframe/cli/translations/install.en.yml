@@ -61,6 +61,7 @@ en:
   through the script at get.docker.com. Would you like to do this?"
   get-docker-script-failed: "Failed to download the Docker installation script:
   {error}"
+  get-docker-script-http-error: "Failed to download the Docker installation script: HTTP %{status_code}."
   ask-docker-compose-path: "Where should Docker Compose be installed to?"
   get-docker-compose-failed: "Failed to download Docker Compose: {error}"
   unsupported-os: "Warning: You are using an unsupported operating system.
