@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "brainframe-cli"
-version = "0.3.3"
+version = "0.3.4"
 license = "BSD-3-Clause"
 authors = ["Aotu.ai <info@aotu.ai>"]
 description = "Makes installing and managing a BrainFrame server easy"
@@ -20,6 +20,9 @@ pyyaml = [
 distro = "^1.5"
 packaging = ">=20.4"
 requests = "^2.24.0"
+# Ubuntu 18.04 can pair older Python versions with OpenSSL 1.1.0; urllib3 2
+# requires OpenSSL 1.1.1 or newer.
+urllib3 = { version = "<2", python = "<3.10" }
 docker-compose = { version = "^1.29.2", python = "<3.10" }
 docker = ">4.3.1,<7.0.0"
 websocket-client = ">=0.32.0,<1.0"

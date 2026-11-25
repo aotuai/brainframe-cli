@@ -121,7 +121,7 @@ The wheel build uses one Python 3.12 Docker image and writes one wheel to
 
 .. code-block:: bash
 
-    pip install dist/brainframe_cli-0.3.3-py3-none-any.whl
+    pip install dist/brainframe_cli-0.3.4-py3-none-any.whl
 
 Once the Docker environments exist, rerun ``build wheel`` or
 ``build pyinstaller-binary`` without rebuilding them.
