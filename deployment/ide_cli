@@ -5,265 +5,434 @@
 
 CMDLINE=$0
 CMD=$1
-ARG=$2
-ARGS="${@:2}"
 
-DATE=$(date -u +"%Y-%m-%d-%H-%M-%S")
+# Everything runs from the repository root (the docker build context and mounts)
+REPO_DIR=$(realpath "$(dirname "$(realpath "$CMDLINE")")/..")
+cd "$REPO_DIR" || exit 1
+
+# -it only when attached to a terminal, so builds also work from CI / pipes
+if [ -t 0 ] && [ -t 1 ]; then DOCKER_TTY="-it"; else DOCKER_TTY=""; fi
+
+# ---- ide_cli <command> [target] [options] (same shape as brainframe-apps/scripts/ide_cli) ----
+# Settings come from the environment, for example: UBUNTU=2204 deployment/ide_cli build deb
+UBUNTU=${UBUNTU:-"2404 2204 2004 1804"}  # Ubuntu versions to build for (24.04, 22.04, 20.04, 18.04)
+BINARY_UBUNTU=${BINARY_UBUNTU:-1804}     # the Ubuntu version the PyInstaller binary is built on
+TARGETS="wheel deb binary"
+
+usage() {
+	cat <<EOF
+  Copyright (c) 2024 AOTU, Inc. All rights reserved.
+
+  === build brainframe-cli ===
+  deployment/ide_cli build               # env image + wheel + deb for every UBUNTU, then the binary
+  deployment/ide_cli build deb           # or wheel, binary; UBUNTU=2204 for one version
+  deployment/ide_cli build all --env-only  # only the build environment images; --skip-env to reuse them
+  deployment/ide_cli exec 2204           # shell in the build environment (default: first UBUNTU)
+  deployment/ide_cli push                # upload the binary to the dev bucket; --prod for production
+  deployment/ide_cli versions            # check the version numbers agree
+
+  settings: UBUNTU="$UBUNTU"
+            BINARY_UBUNTU="$BINARY_UBUNTU"
+  options:  --no-cache and other options are passed to docker build
+
+  The old per-step commands (brainframe-cli-env-build, brainframe-cli-build-dpkg,
+  brainframe-cli-build-wheel, brainframe-cli-build-pyinstaller, ...) still work.
+EOF
+}
+
+fail() { printf 'ide_cli: %s\n' "$*" >&2; exit 1; }
+
+ubuntu_dotted() { printf '%s.%s\n' "${1:0:2}" "${1:2:2}"; }  # 2204 -> 22.04
+
+# 22.04 or 2204 -> 2204; fails for versions without a build environment
+normalize_ubuntu() {
+	local v=${1//./}
+	case $v in
+		2404|2204|2004|1804) printf '%s\n' "$v" ;;
+		*) printf "ide_cli: unsupported Ubuntu version '%s' (use 2404, 2204, 2004 or 1804)\n" "$1" >&2; return 1 ;;
+	esac
+}
+
+# Sets the build flavour of an Ubuntu version: ENV_DOCKERFILE, PY_TAG, WHEEL_PYTHONS, ENV_EXTRA
+env_flavour() {
+	ENV_EXTRA=""
+	case $1 in
+		2404) ENV_DOCKERFILE=Dockerfile.env.py312; PY_TAG=py310.py312; WHEEL_PYTHONS="3.10 3.12" ;;
+		2204) ENV_DOCKERFILE=Dockerfile.env.py310; PY_TAG=py310.py312; WHEEL_PYTHONS="3.10 3.12" ;;
+		2004) ENV_DOCKERFILE=Dockerfile.env;       PY_TAG=py38;         WHEEL_PYTHONS="3.8" ;;
+		# Ubuntu 18.04 only has Poetry 1.1.14 available (and its lock format)
+		1804) ENV_DOCKERFILE=Dockerfile.env.py36;  PY_TAG=py36;         WHEEL_PYTHONS="3.6"
+		      ENV_EXTRA="--build-arg POETRY_VERSION=1.1.14" ;;
+		*) return 1 ;;
+	esac
+}
+
+env_image() { printf 'aotuai/brainframe-cli-env-%s\n' "$(ubuntu_dotted "$1")"; }
+
+SHORT_COMMIT_ID=$(git rev-parse --short HEAD 2> /dev/null)
+COMMIT=$SHORT_COMMIT_ID
+
+# build the build-environment image: build_env_image <ver> [docker build options]
+build_env_image() {
+	local ver=$1 image rc; shift
+	env_flavour "$ver" || return 1
+	image=$(env_image "$ver")
+	DOCKER_BUILDKIT=1 docker build \
+		--file "deployment/$ENV_DOCKERFILE" \
+		--build-arg WORKDIR=/deployment \
+		--build-arg UBUNTU_VERSION="$(ubuntu_dotted "$ver")" \
+		--build-arg PYPROJECT="pyproject.toml.$PY_TAG" \
+		--build-arg POETRYLOCK="poetry.lock.$PY_TAG" \
+		$ENV_EXTRA \
+		"$@" \
+		--tag "$image" \
+		.
+	rc=$?
+	if [ $rc -eq 0 ]; then docker tag "$image:latest" "$image:$COMMIT"; fi
+	return $rc
+}
+
+# Run a script in the repository's build environment: run_in_env <ver> <script> [docker run options]
+# The files the container creates are handed back to the calling user when it exits.
+run_in_env() {
+	local ver=$1 script=$2; shift 2
+	docker run $DOCKER_TTY --rm \
+		-e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+		"$@" \
+		-v "$REPO_DIR":/brainframe-cli \
+		-w /brainframe-cli \
+		"$(env_image "$ver")" \
+		bash -c "trap 'chown -R \$HOST_UID:\$HOST_GID /brainframe-cli' EXIT; $script"
+}
+
+build_wheel() {
+	local ver=$1
+	env_flavour "$ver" || return 1
+	run_in_env "$ver" "
+		cp /deployment/* /brainframe-cli/ &&
+		python3 deployment/build.py --versions $WHEEL_PYTHONS
+		"
+}
+
+build_deb() {
+	local ver=$1
+	env_flavour "$ver" || return 1
+	run_in_env "$ver" "
+		cd /brainframe-cli/ &&
+		cp -r package/debian . &&
+		cp package/setup.py . &&
+		cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml &&
+		cp deployment/pyproject.toml.$PY_TAG pyproject.toml &&
+		cp deployment/poetry.lock.$PY_TAG poetry.lock &&
+		mk-build-deps --install debian/control &&
+		poetry export --output requirements.txt &&
+		PATH=./deployment:\$PATH dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
+		"
+}
+
+build_binary() {
+	local ver=$1
+	env_flavour "$ver" || return 1
+	run_in_env "$ver" "
+		apt-get update &&
+		apt-get install -y binutils &&
+		cd /deployment &&
+		poetry config virtualenvs.in-project true &&
+		poetry install --no-root &&
+		VENV_PATH=\$(poetry env info --path) &&
+		cd /brainframe-cli &&
+		PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python -m PyInstaller package/main.spec
+		"
+}
+
+shell_env_image() {
+	local ver=$1
+	env_flavour "$ver" || return 1
+	dind_help
+	docker run --privileged -it --rm \
+		-v "$REPO_DIR":/brainframe-cli \
+		-w /deployment \
+		"$(env_image "$ver")" \
+		bash
+}
 
 dind_help() {
-        echo ""
-        echo " ================== DinD test help ================="
-        echo " pip install brainframe_cli_v "
-        echo " export LOGNAME=root"
-        echo " dockerd &"
+	echo ""
+	echo " ================== DinD test help ================="
+	echo " pip install brainframe_cli_v "
+	echo " export LOGNAME=root"
+	echo " dockerd &"
 	echo " python3 -m venv my_venv"
 	echo " source my_venv/bin/activate"
-        echo " brainframe install"
-        echo " brainframe compose down"
-        echo " ===================================================="
-        echo ""
+	echo " brainframe install"
+	echo " brainframe compose down"
+	echo " ===================================================="
+	echo ""
 }
 
-docker_tag_if_succeeded() {
-        IMAGE=$1
-        TAG=$2
-        if [ $BUILD_STATUS -eq 0 ]; then
-                docker tag $IMAGE:latest $IMAGE:$TAG
-        fi
+source_version() { sed -n 's/^__version__ *= *"\(.*\)".*/\1/p' brainframe/cli/__init__.py; }
+template_version() { sed -n 's/^version *= *"\(.*\)".*/\1/p' "$1" | head -n 1; }
+
+# prints every version number, and fails when they do not agree
+print_versions() {
+	local src f v rc=0
+	src=$(source_version)
+	printf '%-42s %s\n' "brainframe/cli/__init__.py" "$src"
+	for f in deployment/pyproject.toml.*; do
+		v=$(template_version "$f")
+		printf '%-42s %s' "$f" "$v"
+		if [ "$v" != "$src" ]; then printf '   <-- differs'; rc=1; fi
+		printf '\n'
+	done
+	printf '%-42s %s\n' "latest git tag" "$(git describe --tags --abbrev=0 2> /dev/null || echo none)"
+	return $rc
 }
 
-SHORT_COMMIT_ID=$(git rev-parse --short HEAD)
-if [[ " $ARGS " =~ " --no-cache " ]]; then
-    COMMIT=$SHORT_COMMIT_ID--no-cache
+# ---- legacy command names, rewritten to the commands above ----
+legacy_ver() {
+	if [ -z "$1" ]; then fail "$CMD needs an Ubuntu version, for example: $CMD 22.04"; fi
+	normalize_ubuntu "$1" || exit 1
+}
+
+case $CMD in
+	brainframe-cli-env-build)
+	UBUNTU=$(legacy_ver "$2") || exit 1
+	set -- build wheel --env-only "${@:3}"
+	;;
+
+	brainframe-cli-build-wheel)
+	UBUNTU=$(legacy_ver "$2") || exit 1
+	set -- build wheel --skip-env "${@:3}"
+	;;
+
+	brainframe-cli-build-dpkg)
+	UBUNTU=$(legacy_ver "$2") || exit 1
+	set -- build deb --skip-env "${@:3}"
+	;;
+
+	brainframe-cli-build-pyinstaller)
+	BINARY_UBUNTU=$(legacy_ver "$2") || exit 1
+	set -- build binary --skip-env "${@:3}"
+	;;
+
+	brainframe-cli-env-run)
+	set -- exec "${@:2}"
+	;;
+esac
+CMD=$1
+
+# $2 is the target unless it is an option (then the target is "all" and every arg is an option)
+if [ -n "$2" ] && [ "${2#-}" = "$2" ]; then
+	TARGET=$2
+	TARGET_ARGS=("${@:3}")
 else
-    COMMIT=$SHORT_COMMIT_ID
+	TARGET=all
+	TARGET_ARGS=("${@:2}")
 fi
 
-build_ubuntu_docker() {
-    local DOCKERFILE=$1
-    local TAG_PREFIX=$2
-    local UBUNTU_VERSION=$3
-    local ARGS="${@:4}"
-
-    local IMAGE_TAG="${TAG_PREFIX}-${UBUNTU_VERSION}"
-
-    DOCKER_BUILDKIT=1 docker build \
-        --file $DOCKERFILE \
-        --build-arg UBUNTU_VERSION="$UBUNTU_VERSION" \
-        $ARGS \
-        --tag "$IMAGE_TAG" \
-        .
-    BUILD_STATUS=$?
-    docker_tag_if_succeeded $IMAGE_TAG $COMMIT $?
-}
-
-run_docker() {
-    local VOLUME=$1
-    local WORKDIR=$2
-    local IMAGE=$3
-    local UBUNTU_VERSION=$4
-    local ARG=$6
-    local ARGS=${@:7}
-
-    local IMAGE_TAG="${IMAGE}-${UBUNTU_VERSION}"
-
-    if [[ -z "$ARG" ]]; then
-	dind_help
-        docker run --privileged -it --rm \
-            -v ./:$VOLUME \
-            -w $WORKDIR \
-            "$IMAGE_TAG" \
-            bash
-    else
-        docker run -it --rm \
-            -v ./:$VOLUME \
-            -w $WORKDIR \
-            "$IMAGE_TAG" \
-            bash \
-	    $ARG \
-            "$ARGS"
-    fi
-}
-
-build_brainframe_cli_env() {
-    local DOCKERFILE=$1
-    local PYPROJECT=$2
-    local POETRYLOCK=$3
-    local UBUNTU_VERSION=$4
-    local ADDITIONAL_ARGS=${@:5}
-
-    local IMAGE_TAG="aotuai/brainframe-cli-env-${UBUNTU_VERSION}"
-
-    # Build the Docker image
-    DOCKER_BUILDKIT=1 docker build \
-        --file "deployment/$DOCKERFILE" \
-        --build-arg WORKDIR=/deployment \
-        --build-arg UBUNTU_VERSION="$UBUNTU_VERSION" \
-        --build-arg PYPROJECT="$PYPROJECT" \
-        --build-arg POETRYLOCK="$POETRYLOCK" \
-        $ADDITIONAL_ARGS \
-        --tag "$IMAGE_TAG" \
-        .
-    BUILD_STATUS=$?
-    docker_tag_if_succeeded $IMAGE_TAG $COMMIT $?
-}
-
-if [ -z $CMD ] || [ $CMD == '-h' ] || [ $CMD == '--help' ]; then
-	echo " Copyright (c) 2024 AOTU, Inc. All rights reserved."
-	cat $CMDLINE | grep echo | awk '(NR>13)' | awk '(NR<14)' | awk '{$1= ""; print $0}'
+if [ -z "$CMD" ] || [ "$CMD" = -h ] || [ "$CMD" = --help ] || [ "$CMD" = help ]; then
+	usage
+	exit 0
 fi
 
 case $CMD in
+	build|push|exec|versions) ;;
+	brainframe-cli-build|ubuntu-build|ubuntu-run|brainframe-cli-lint) ;;
+	*) fail "unknown command '$CMD' (run it without arguments for help)" ;;
+esac
 
-	help)
-	;;
+# validate the Ubuntu versions up front, so a typo does not build half the list
+UBUNTU_LIST=""
+for v in $UBUNTU; do
+	n=$(normalize_ubuntu "$v") || exit 1
+	UBUNTU_LIST="$UBUNTU_LIST $n"
+done
+UBUNTU_LIST=${UBUNTU_LIST# }
+BINARY_UBUNTU=$(normalize_ubuntu "$BINARY_UBUNTU") || exit 1
 
-	comments_only)
-	echo ┌─────── deploy brainframe-cli ──────────────────────────
-	;;
+BUILD_ALL_RC=0
 
-        brainframe-cli-build)
-        echo │ ./deployment/ide_cli brainframe-cli-build 22.04 # --no-cache
-        build_ubuntu_docker deployment/Dockerfile.brainframe-cli "aotuai/brainframe-cli" $ARGS
-        ;;
+case $CMD in
 
-        ubuntu-build)
-        echo │ ./deployment/ide_cli ubuntu-build 22.04 # --no-cache
-        build_ubuntu_docker deployment/Dockerfile.ubuntu "aotuai/test-ubuntu" $ARGS
-        ;;
+	build)
+	case " all $TARGETS " in
+		*" $TARGET "*) ;;
+		*) fail "unknown target '$TARGET' (use all, ${TARGETS// /, })" ;;
+	esac
+	MODE=both
+	BUILD_OPTS=()
+	for opt in "${TARGET_ARGS[@]}"; do
+		case $opt in
+			--env-only) MODE=env ;;
+			--skip-env) MODE=skip-env ;;
+			*) BUILD_OPTS+=("$opt") ;;
+		esac
+	done
+	if [[ " ${BUILD_OPTS[*]} " == *" --no-cache "* ]]; then COMMIT=$SHORT_COMMIT_ID--no-cache; fi
 
-        ubuntu-run)
-        echo │ ./deployment/ide_cli ubuntu-run 22.04
-        run_docker /brainframe-cli /brainframe-cli/dist aotuai/test-ubuntu $ARGS
-        ;;
+	BUILD_MARKER=$(mktemp)
+	BUILD_OK=""
+	BUILD_FAILED=""
+	ENV_DONE=" "  # the environment images built in this run (each one is built only once)
 
-	comments_only)
-	echo └────────────────────────────────────────────────────────
-	echo ┌─────── build brainframe-cli ───────────────────────────
-	;;
+	# ensure_env <ver>: build the environment image unless it is done or skipped
+	ensure_env() {
+		[ "$MODE" = skip-env ] && return 0
+		case "$ENV_DONE" in *" $1 "*) return 0 ;; esac
+		ENV_DONE="$ENV_DONE$1 "  # each image is built once, even when it fails
+		printf '\n=== [%s] %s ===\n' "$(date +%H:%M:%S)" "$(env_image "$1")"
+		if build_env_image "$1" "${BUILD_OPTS[@]}"; then
+			if [ "$MODE" = env ]; then BUILD_OK="$BUILD_OK env/$1"; fi
+			return 0
+		fi
+		BUILD_FAILED="$BUILD_FAILED $1(env)"
+		return 1
+	}
 
-        brainframe-cli-env-build)
-        echo │ ./deployment/ide_cli brainframe-cli-env-build 22.04 # --no-cache
-	case $ARG in
-		24.04)
-		build_brainframe_cli_env Dockerfile.env.py312 pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS
-		;;
+	# run_step <what> <ver> <function>
+	run_step() {
+		local what=$1 ver=$2 func=$3
+		case "$BUILD_FAILED" in *" $ver(env)"*) return 1 ;; esac
+		ensure_env "$ver" || return 1
+		[ "$MODE" = env ] && return 0
+		printf '\n=== [%s] %s (ubuntu %s) ===\n' "$(date +%H:%M:%S)" "$what" "$(ubuntu_dotted "$ver")"
+		if $func "$ver"; then
+			BUILD_OK="$BUILD_OK $what/$ver"
+		else
+			BUILD_FAILED="$BUILD_FAILED $what/$ver"
+		fi
+	}
 
-		22.04)
-		build_brainframe_cli_env Dockerfile.env.py310 pyproject.toml.py310.py312 poetry.lock.py310.py312 $ARGS
-		;;
-
-		20.04)
-		build_brainframe_cli_env Dockerfile.env pyproject.toml.py38 poetry.lock.py38 $ARGS
-		;;
-
-		18.04)
-		build_brainframe_cli_env Dockerfile.env.py36 pyproject.toml.py36 poetry.lock.py36 $ARGS --build-arg POETRY_VERSION="1.1.14"
+	case $TARGET in
+		all|wheel|deb)
+		for ver in $UBUNTU_LIST; do
+			if [ "$TARGET" = all ] || [ "$TARGET" = wheel ]; then run_step wheel "$ver" build_wheel; fi
+			if [ "$TARGET" = all ] || [ "$TARGET" = deb ]; then run_step deb "$ver" build_deb; fi
+		done
 		;;
 	esac
-        ;;
+	if [ "$TARGET" = all ] || [ "$TARGET" = binary ]; then
+		run_step binary "$BINARY_UBUNTU" build_binary
+	fi
 
-        brainframe-cli-env-run)
-        echo │ ./deployment/ide_cli brainframe-cli-env-run 22.04
-	run_docker /brainframe-cli /deployment aotuai/brainframe-cli-env $ARGS
-        ;;
+	printf '\n=== build summary ===\n'
+	printf 'ok:     %s\n' "${BUILD_OK:- none}"
+	printf 'failed: %s\n' "${BUILD_FAILED:- none}"
+	if [ "$MODE" != env ]; then
+		printf 'new packages:\n'
+		find . -maxdepth 2 -path ./.git -prune -o \( -name '*.whl' -o -name '*.deb' -o -path ./dist/brainframe \) \
+			-type f -newer "$BUILD_MARKER" -print 2> /dev/null | sort | sed 's/^/  /'
+	fi
+	rm -f "$BUILD_MARKER"
+	if [ -n "$BUILD_FAILED" ]; then BUILD_ALL_RC=1; fi
+	;;
 
-        brainframe-cli-lint)
-        echo │ ./deployment/ide_cli brainframe-cli-lint 22.04
-        run_docker /brainframe-cli /deployment aotuai/brainframe-cli-env $ARG bash -c "
-            cp /deployment/* /brainframe-cli/ &&
-            poetry run black /brainframe-cli/ &&
-            poetry run isort /brainframe-cli/ &&
-            MYPYPATH=/brainframe-cli/ poetry run mypy --config-file /brainframe-cli/mypy.ini -p 'brainframe.cli'
-            "
-        ;;
+	push)
+	STAGE_NAME=dev
+	ASSUME_YES=""
+	for opt in "$TARGET" "${TARGET_ARGS[@]}"; do
+		case $opt in
+			all) ;;
+			--prod) STAGE_NAME=prod ;;
+			--yes) ASSUME_YES=1 ;;
+			*) fail "unknown push option '$opt' (use --prod, --yes)" ;;
+		esac
+	done
+	if [ ! -f dist/brainframe ]; then fail "missing dist/brainframe (run: deployment/ide_cli build binary)"; fi
+	if [ "$(stat -c %Y dist/brainframe)" -lt "$(git log -1 --format=%ct)" ]; then
+		fail "dist/brainframe is older than the last commit, rebuild it (deployment/ide_cli build binary)"
+	fi
+	if ! print_versions > /dev/null; then
+		print_versions
+		fail "the version numbers do not agree (see above), fix them before pushing"
+	fi
+	printf 'Uploading dist/brainframe, version %s, to the %s releases bucket (stage: %s)\n' \
+		"$(source_version)" "$STAGE_NAME" "$STAGE_NAME"
+	if [ "$STAGE_NAME" = prod ]; then printf '*** PRODUCTION ***\n'; fi
+	if [ -z "$ASSUME_YES" ]; then
+		if [ ! -t 0 ]; then fail "not a terminal, pass --yes to confirm the upload"; fi
+		read -r -p "Continue? [y/N] " answer
+		case $answer in y|Y|yes) ;; *) printf 'cancelled\n'; exit 2 ;; esac
+	fi
+	# AWS credentials come from the environment or ~/.aws (read-only)
+	AWS_OPTS=(-e STAGE="$STAGE_NAME")
+	for name in AWS_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
+		if [ -n "${!name}" ]; then AWS_OPTS+=(-e "$name"); fi
+	done
+	if [ -d "$HOME/.aws" ]; then AWS_OPTS+=(-v "$HOME/.aws":/root/.aws:ro); fi
+	run_in_env "$BINARY_UBUNTU" "
+		cd /deployment &&
+		poetry config virtualenvs.in-project true &&
+		poetry install --no-root &&
+		VENV_PATH=\$(poetry env info --path) &&
+		cd /brainframe-cli &&
+		PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python package/upload_binary.py
+		" "${AWS_OPTS[@]}"
+	if [ $? -ne 0 ]; then BUILD_ALL_RC=1; printf 'push failed\n'; else printf 'push done (%s)\n' "$STAGE_NAME"; fi
+	;;
 
-        brainframe-cli-build-wheel)
-        echo │ ./deployment/ide_cli brainframe-cli-build-wheel 22.04
-	case $ARG in
-		24.04)
-		PYTHON_TAG="3.10 3.12"
-		;;
+	exec)
+	if [ "$TARGET" = all ]; then TARGET=${UBUNTU_LIST%% *}; fi
+	EXEC_VER=$(normalize_ubuntu "$TARGET") || exit 1
+	shell_env_image "$EXEC_VER"
+	;;
 
-		22.04)
-		PYTHON_TAG="3.10 3.12"
-		;;
+	versions)
+	print_versions || BUILD_ALL_RC=1
+	;;
 
-		20.04)
-		PYTHON_TAG=3.8
-		;;
+	# ---- older commands that are not part of the build flow ----
+	brainframe-cli-build)
+	DOCKER_BUILDKIT=1 docker build \
+		--file deployment/Dockerfile.brainframe-cli \
+		--build-arg UBUNTU_VERSION="$(ubuntu_dotted "$(normalize_ubuntu "$TARGET")")" \
+		"${TARGET_ARGS[@]}" \
+		--tag "aotuai/brainframe-cli-$TARGET" \
+		.
+	BUILD_ALL_RC=$?
+	;;
 
-		18.04)
-		PYTHON_TAG=3.6
-		;;
-	esac
-	# build pip wheel
-	run_docker /brainframe-cli /brainframe-cli aotuai/brainframe-cli-env $ARG bash -c "
-            cp /deployment/* /brainframe-cli/ &&
-            python3 deployment/build.py --versions $PYTHON_TAG
-            "
-        ;;
+	ubuntu-build)
+	DOCKER_BUILDKIT=1 docker build \
+		--file deployment/Dockerfile.ubuntu \
+		--build-arg UBUNTU_VERSION="$(ubuntu_dotted "$(normalize_ubuntu "$TARGET")")" \
+		"${TARGET_ARGS[@]}" \
+		--tag "aotuai/test-ubuntu-$TARGET" \
+		.
+	BUILD_ALL_RC=$?
+	;;
 
-        brainframe-cli-build-pyinstaller)
-        echo │ ./deployment/ide_cli brainframe-cli-build-pyinstaller 22.04
-        # build pyinstaller 
-        run_docker /brainframe-cli /brainframe-cli aotuai/brainframe-cli-env $ARG bash -c "
-            apt-get update &&
-            apt-get install -y binutils &&
-            cd /deployment &&
-            poetry config virtualenvs.in-project true &&
-            poetry install --no-root &&
-            VENV_PATH=\$(poetry env info --path) &&
-            cd /brainframe-cli &&
-            PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python -m PyInstaller package/main.spec
-            "
-        ;;
+	ubuntu-run)
+	dind_help
+	docker run --privileged -it --rm \
+		-v "$REPO_DIR":/brainframe-cli \
+		-w /brainframe-cli/dist \
+		"aotuai/test-ubuntu-$TARGET" \
+		bash
+	;;
 
-        brainframe-cli-build-dpkg)
-        echo │ ./deployment/ide_cli brainframe-cli-build-dpkg 22.04
-	case $ARG in
-		24.04)
-		PYTHON_TAG=py310.py312
-		;;
-
-		22.04)
-		PYTHON_TAG=py310.py312
-		;;
-
-		20.04)
-		PYTHON_TAG=py38
-		;;
-
-		18.04)
-		PYTHON_TAG=py36
-		;;
-	esac
-        # build deb
-        run_docker /brainframe-cli /brainframe-cli aotuai/brainframe-cli-env $ARG bash -c "
-	    cd /brainframe-cli/ &&
-	    cp -r package/debian . &&
-	    cp package/setup.py . &&
-	    cp package/system_package_defaults.yaml brainframe/cli/defaults.yaml &&
-	    cp deployment/pyproject.toml.$PYTHON_TAG pyproject.toml &&
-	    cp deployment/poetry.lock.$PYTHON_TAG poetry.lock &&
-	    mk-build-deps --install debian/control &&
-	    poetry export --output requirements.txt &&
-            PATH=./deployment:\$PATH dpkg-buildpackage --unsigned-source --unsigned-changes --build=binary
-            "
-        ;;
-
-	comments_only)
-	echo └────────────────────────────────────────────────────────
+	brainframe-cli-lint)
+	LINT_VER=$(normalize_ubuntu "$TARGET") || exit 1
+	run_in_env "$LINT_VER" "
+		cp /deployment/* /brainframe-cli/ &&
+		cd /deployment &&
+		poetry run black /brainframe-cli/ &&
+		poetry run isort /brainframe-cli/ &&
+		MYPYPATH=/brainframe-cli/ poetry run mypy --config-file /brainframe-cli/mypy.ini -p 'brainframe.cli'
+		"
+	BUILD_ALL_RC=$?
 	;;
 
 esac
 
-nice_day_var=$((1 + $RANDOM % 10))
+nice_day_var=$((1 + RANDOM % 10))
 
-if [ $(($nice_day_var%2)) -eq 0 ]; then
+if [ $((nice_day_var % 2)) -eq 0 ]; then
 	echo
 	echo Have a nice day!
 else
 	echo
 	echo You are the best!
 fi
+
+exit $BUILD_ALL_RC
