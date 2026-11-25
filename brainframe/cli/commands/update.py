@@ -4,9 +4,9 @@ import i18n
 from brainframe.cli import brainframe_compose
 from brainframe.cli import config
 from brainframe.cli import print_utils
-from packaging import version
 
 from .utils import command
+from .utils import parse_version
 from .utils import subcommand_parse_args
 
 
@@ -27,8 +27,8 @@ def update():
         install_path
     )
 
-    existing_version = version.parse(existing_version_str)
-    requested_version = version.parse(requested_version_str)
+    existing_version = parse_version(existing_version_str)
+    requested_version = parse_version(requested_version_str)
 
     force = args.force
     if (

@@ -6,6 +6,7 @@ from typing import Callable
 
 from brainframe.cli import os_utils
 from brainframe.cli import print_utils
+from packaging import version
 
 by_name = {}
 """A dict that maps command names to their corresponding function"""
@@ -42,3 +43,14 @@ def requires_root(function: Callable) -> Callable:
         return function(*args, **kwargs)
 
     return wrapper
+
+
+def parse_version(version_str: str) -> version.Version:
+    """Parses a version string, exiting with a readable error if it is
+    malformed."""
+    try:
+        return version.Version(version_str.strip())
+    except version.InvalidVersion:
+        print_utils.fail_translate(
+            "general.invalid-version", version=version_str.strip()
+        )

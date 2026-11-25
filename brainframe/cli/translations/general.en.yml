@@ -34,3 +34,4 @@ en:
   missing-defaults-file: "This distribution is missing a defaults file. Please
   re-install the latest version of the BrainFrame CLI and try again."
   interrupted: "The operation was interrupted"
+  invalid-version: "\"%{version}\" is not a valid version number."

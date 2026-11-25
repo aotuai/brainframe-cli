@@ -14,9 +14,10 @@ from brainframe.cli import __version__
 from brainframe.cli import config
 from brainframe.cli import frozen_utils
 from brainframe.cli import print_utils
-from packaging import version
+from packaging.version import Version
 
 from .utils import command
+from .utils import parse_version
 
 _RELEASES_URL_PREFIX = "https://{subdomain}aotu.ai"
 _BINARY_URL = "{prefix}/releases/brainframe-cli/brainframe"
@@ -49,7 +50,7 @@ def self_update():
     )
     binary_url = _BINARY_URL.format(prefix=prefix)
 
-    current_version = version.parse(__version__)
+    current_version = parse_version(__version__)
     latest_version = _latest_version(prefix, credentials)
 
     if current_version >= latest_version:
@@ -93,7 +94,7 @@ def self_update():
 def _latest_version(
     url_prefix: str,
     credentials: Optional[Tuple[str, str]],
-) -> version.Version:
+) -> Version:
     latest_tag_url = _LATEST_TAG_URL.format(prefix=url_prefix)
     response = requests.get(latest_tag_url, auth=credentials)
 
@@ -104,7 +105,7 @@ def _latest_version(
             error_message=response.text,
         )
 
-    return version.Version(response.text)
+    return parse_version(response.text)
 
 
 def _parse_args():
