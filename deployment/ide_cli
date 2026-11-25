@@ -17,26 +17,56 @@ if [ -t 0 ] && [ -t 1 ]; then DOCKER_TTY="-it"; else DOCKER_TTY=""; fi
 # Settings come from the environment, for example: UBUNTU=2204 deployment/ide_cli build deb
 UBUNTU=${UBUNTU:-"2404 2204 2004 1804"}  # Ubuntu versions to build for (24.04, 22.04, 20.04, 18.04)
 BINARY_UBUNTU=${BINARY_UBUNTU:-1804}     # the Ubuntu version the PyInstaller binary is built on
-TARGETS="wheel deb binary"
+TARGETS="wheel-env wheel pyinstaller-binary-env pyinstaller-binary deb-env deb"
 
 usage() {
 	cat <<EOF
-  Copyright (c) 2024 AOTU, Inc. All rights reserved.
+brainframe-cli build and release
 
-  === build brainframe-cli ===
-  deployment/ide_cli build               # env image + wheel + deb for every UBUNTU, then the binary
-  deployment/ide_cli build deb           # or wheel, binary; UBUNTU=2204 for one version
-  deployment/ide_cli build all --env-only  # only the build environment images; --skip-env to reuse them
-  deployment/ide_cli exec 2204           # shell in the build environment (default: first UBUNTU)
-  deployment/ide_cli push                # upload the binary to the dev bucket; --prod for production
-  deployment/ide_cli versions            # check the version numbers agree
+1. PyPI Wheels (Python 3.6–3.12)
+   deployment/ide_cli build wheel-env
+   deployment/ide_cli build wheel                # dist/brainframe_cli-*.whl
+   deployment/ide_cli push wheel                 # TestPyPI
+   deployment/ide_cli push wheel --pypi          # PyPI
 
-  settings: UBUNTU="$UBUNTU"
-            BINARY_UBUNTU="$BINARY_UBUNTU"
-  options:  --no-cache and other options are passed to docker build
+2. PyInstaller standalone executable
+   deployment/ide_cli build pyinstaller-binary-env
+   deployment/ide_cli build pyinstaller-binary    # dist/brainframe
+   deployment/ide_cli push pyinstaller-to-aws --profile NAME          # dev bucket
+   deployment/ide_cli push pyinstaller-to-aws --profile NAME --prod   # production bucket
 
-  The old per-step commands (brainframe-cli-env-build, brainframe-cli-build-dpkg,
-  brainframe-cli-build-wheel, brainframe-cli-build-pyinstaller, ...) still work.
+3. Debian packages (currently not release-ready)
+   UBUNTU=2204 deployment/ide_cli build deb-env
+   UBUNTU=2204 deployment/ide_cli build deb
+   deployment/ide_cli exec 2204         # shell in the existing 22.04 environment
+
+4. Cleanup and version
+   deployment/ide_cli clean
+   deployment/ide_cli versions
+
+Docker build options such as --no-cache apply to *-env targets.
+EOF
+}
+
+push_aws_help() {
+	cat <<'EOF'
+Upload dist/brainframe to the AWS releases bucket.
+
+Usage: deployment/ide_cli push pyinstaller-to-aws [--profile NAME] [--region REGION] [--prod] [--yes]
+
+The default destination is the dev releases bucket. --profile selects AWS
+credentials; --prod selects the production bucket. For example:
+
+   deployment/ide_cli push pyinstaller-to-aws --profile prod --prod
+
+If the selected profile has no region, pass --region:
+   deployment/ide_cli push pyinstaller-to-aws --profile <your-profile> --region <your-region>
+
+You can also set AWS_PROFILE and AWS_DEFAULT_REGION in the environment, or
+save the region in the selected AWS profile with:
+   aws configure set region <your-region> --profile <your-profile>
+
+The command reads ~/.aws in the container. --yes skips the confirmation prompt.
 EOF
 }
 
@@ -53,15 +83,15 @@ normalize_ubuntu() {
 	esac
 }
 
-# Sets the build flavour of an Ubuntu version: ENV_DOCKERFILE, PY_TAG, WHEEL_PYTHONS, ENV_EXTRA
+# Sets the build flavour of an Ubuntu version: ENV_DOCKERFILE, PY_TAG, ENV_EXTRA
 env_flavour() {
 	ENV_EXTRA=""
 	case $1 in
-		2404) ENV_DOCKERFILE=Dockerfile.env.py312; PY_TAG=py310.py312; WHEEL_PYTHONS="3.10 3.12" ;;
-		2204) ENV_DOCKERFILE=Dockerfile.env.py310; PY_TAG=py310.py312; WHEEL_PYTHONS="3.10 3.12" ;;
-		2004) ENV_DOCKERFILE=Dockerfile.env;       PY_TAG=py38;         WHEEL_PYTHONS="3.8" ;;
+		2404) ENV_DOCKERFILE=Dockerfile.env.py312; PY_TAG=py310.py312 ;;
+		2204) ENV_DOCKERFILE=Dockerfile.env.py310; PY_TAG=py310.py312 ;;
+		2004) ENV_DOCKERFILE=Dockerfile.env;       PY_TAG=py38 ;;
 		# Ubuntu 18.04 only has Poetry 1.1.14 available (and its lock format)
-		1804) ENV_DOCKERFILE=Dockerfile.env.py36;  PY_TAG=py36;         WHEEL_PYTHONS="3.6"
+		1804) ENV_DOCKERFILE=Dockerfile.env.py36;  PY_TAG=py36
 		      ENV_EXTRA="--build-arg POETRY_VERSION=1.1.14" ;;
 		*) return 1 ;;
 	esac
@@ -105,15 +135,6 @@ run_in_env() {
 		bash -c "trap 'chown -R \$HOST_UID:\$HOST_GID /brainframe-cli' EXIT; $script"
 }
 
-build_wheel() {
-	local ver=$1
-	env_flavour "$ver" || return 1
-	run_in_env "$ver" "
-		cp /deployment/* /brainframe-cli/ &&
-		python3 deployment/build.py --versions $WHEEL_PYTHONS
-		"
-}
-
 build_deb() {
 	local ver=$1
 	env_flavour "$ver" || return 1
@@ -134,11 +155,7 @@ build_binary() {
 	local ver=$1
 	env_flavour "$ver" || return 1
 	run_in_env "$ver" "
-		apt-get update &&
-		apt-get install -y binutils &&
 		cd /deployment &&
-		poetry config virtualenvs.in-project true &&
-		poetry install --no-root &&
 		VENV_PATH=\$(poetry env info --path) &&
 		cd /brainframe-cli &&
 		PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python -m PyInstaller package/main.spec
@@ -148,7 +165,6 @@ build_binary() {
 shell_env_image() {
 	local ver=$1
 	env_flavour "$ver" || return 1
-	dind_help
 	docker run --privileged -it --rm \
 		-v "$REPO_DIR":/brainframe-cli \
 		-w /deployment \
@@ -197,22 +213,22 @@ legacy_ver() {
 case $CMD in
 	brainframe-cli-env-build)
 	UBUNTU=$(legacy_ver "$2") || exit 1
-	set -- build wheel --env-only "${@:3}"
+	set -- build deb-env "${@:3}"
 	;;
 
 	brainframe-cli-build-wheel)
 	UBUNTU=$(legacy_ver "$2") || exit 1
-	set -- build wheel --skip-env "${@:3}"
+	set -- build wheel "${@:3}"
 	;;
 
 	brainframe-cli-build-dpkg)
 	UBUNTU=$(legacy_ver "$2") || exit 1
-	set -- build deb --skip-env "${@:3}"
+	set -- build deb "${@:3}"
 	;;
 
 	brainframe-cli-build-pyinstaller)
 	BINARY_UBUNTU=$(legacy_ver "$2") || exit 1
-	set -- build binary --skip-env "${@:3}"
+	set -- build pyinstaller-binary "${@:3}"
 	;;
 
 	brainframe-cli-env-run)
@@ -221,7 +237,7 @@ case $CMD in
 esac
 CMD=$1
 
-# $2 is the target unless it is an option (then the target is "all" and every arg is an option)
+# $2 is the target unless it is an option
 if [ -n "$2" ] && [ "${2#-}" = "$2" ]; then
 	TARGET=$2
 	TARGET_ARGS=("${@:3}")
@@ -236,10 +252,14 @@ if [ -z "$CMD" ] || [ "$CMD" = -h ] || [ "$CMD" = --help ] || [ "$CMD" = help ];
 fi
 
 case $CMD in
-	build|push|exec|versions) ;;
+	build|clean|push|exec|versions) ;;
 	brainframe-cli-build|ubuntu-build|ubuntu-run|brainframe-cli-lint) ;;
 	*) fail "unknown command '$CMD' (run it without arguments for help)" ;;
 esac
+
+if [ "$CMD" = build ] && { [ -z "$2" ] || [ "${2#-}" != "$2" ]; }; then
+	fail "build needs a target (wheel-env, wheel, pyinstaller-binary-env, pyinstaller-binary, deb-env, or deb)"
+fi
 
 # validate the Ubuntu versions up front, so a typo does not build half the list
 UBUNTU_LIST=""
@@ -253,74 +273,123 @@ BINARY_UBUNTU=$(normalize_ubuntu "$BINARY_UBUNTU") || exit 1
 BUILD_ALL_RC=0
 
 case $CMD in
+	clean)
+		[ "$TARGET" = all ] || fail "clean takes no target"
+		[ ${#TARGET_ARGS[@]} -eq 0 ] || fail "clean takes no options"
+		# The Debian build copies this file over the tracked manual-install defaults.
+		# Restore it only when it still matches that exact generated copy.
+		RESTORE_DEFAULTS=0
+		git diff --cached --quiet -- brainframe/cli/defaults.yaml || fail "defaults.yaml has staged changes; restore it manually"
+		if ! git diff --quiet -- brainframe/cli/defaults.yaml; then
+			cmp -s brainframe/cli/defaults.yaml package/system_package_defaults.yaml || \
+				fail "defaults.yaml has other changes; restore it manually"
+			RESTORE_DEFAULTS=1
+		fi
+
+		shopt -s nullglob
+		CLEAN_PATHS=(
+			dist build debian pyproject.toml poetry.lock requirements.txt setup.py
+			brainframe-cli*.deb brainframe-cli*.ddeb
+			brainframe-cli*.buildinfo brainframe-cli*.changes
+		)
+		shopt -u nullglob
+		for path in "${CLEAN_PATHS[@]}"; do
+			if [ -n "$(git ls-files -- "$path")" ]; then
+				fail "refusing to remove tracked path $path"
+			fi
+		done
+		for path in "${CLEAN_PATHS[@]}"; do
+			if [ -e "$path" ] || [ -L "$path" ]; then
+				rm -rf -- "$path" || fail "could not remove $path"
+				printf 'removed %s\n' "$path"
+			fi
+		done
+		if [ "$RESTORE_DEFAULTS" -eq 1 ]; then
+			git restore --worktree -- brainframe/cli/defaults.yaml || fail "could not restore defaults.yaml"
+			printf 'restored brainframe/cli/defaults.yaml\n'
+		fi
+		;;
 
 	build)
-	case " all $TARGETS " in
+	case " $TARGETS " in
 		*" $TARGET "*) ;;
-		*) fail "unknown target '$TARGET' (use all, ${TARGETS// /, })" ;;
+		*) fail "unknown build target '$TARGET' (use ${TARGETS// /, })" ;;
 	esac
-	MODE=both
-	BUILD_OPTS=()
-	for opt in "${TARGET_ARGS[@]}"; do
-		case $opt in
-			--env-only) MODE=env ;;
-			--skip-env) MODE=skip-env ;;
-			*) BUILD_OPTS+=("$opt") ;;
-		esac
-	done
+	if [[ "$TARGET" = *-env ]]; then
+		BUILD_OPTS=("${TARGET_ARGS[@]}")
+		for opt in "${BUILD_OPTS[@]}"; do
+			case $opt in --skip-env|--env-only) fail "$opt is obsolete; build the matching *-env target first" ;; esac
+		done
+	else
+		[ ${#TARGET_ARGS[@]} -eq 0 ] || fail "build $TARGET takes no options; build its environment separately"
+		BUILD_OPTS=()
+	fi
 	if [[ " ${BUILD_OPTS[*]} " == *" --no-cache "* ]]; then COMMIT=$SHORT_COMMIT_ID--no-cache; fi
 
 	BUILD_MARKER=$(mktemp)
 	BUILD_OK=""
 	BUILD_FAILED=""
-	ENV_DONE=" "  # the environment images built in this run (each one is built only once)
 
-	# ensure_env <ver>: build the environment image unless it is done or skipped
-	ensure_env() {
-		[ "$MODE" = skip-env ] && return 0
-		case "$ENV_DONE" in *" $1 "*) return 0 ;; esac
-		ENV_DONE="$ENV_DONE$1 "  # each image is built once, even when it fails
-		printf '\n=== [%s] %s ===\n' "$(date +%H:%M:%S)" "$(env_image "$1")"
-		if build_env_image "$1" "${BUILD_OPTS[@]}"; then
-			if [ "$MODE" = env ]; then BUILD_OK="$BUILD_OK env/$1"; fi
-			return 0
+	build_wheel_image() {
+		DOCKER_BUILDKIT=1 docker build --file deployment/Dockerfile.wheel \
+			"${BUILD_OPTS[@]}" --tag aotuai/brainframe-cli-wheel-env .
+	}
+
+	build_stable_wheels() {
+		docker run $DOCKER_TTY --rm \
+			--user "$(id -u):$(id -g)" -e HOME=/tmp \
+			-v "$REPO_DIR":/brainframe-cli -w /brainframe-cli \
+			aotuai/brainframe-cli-wheel-env \
+			python deployment/build_wheels.py
+	}
+
+	build_with_image() {
+		local image=$1 env_target=$2; shift 2
+		if ! docker image inspect "$image" > /dev/null 2>&1; then
+			printf 'ide_cli: missing build environment %s (run: deployment/ide_cli build %s)\n' "$image" "$env_target" >&2
+			return 1
 		fi
-		BUILD_FAILED="$BUILD_FAILED $1(env)"
+		"$@"
+	}
+
+	record_build() {
+		local name=$1; shift
+		printf '\n=== [%s] %s ===\n' "$(date +%H:%M:%S)" "$name"
+		if "$@"; then BUILD_OK="$BUILD_OK $name"; return 0; fi
+		BUILD_FAILED="$BUILD_FAILED $name"
 		return 1
 	}
 
-	# run_step <what> <ver> <function>
-	run_step() {
-		local what=$1 ver=$2 func=$3
-		case "$BUILD_FAILED" in *" $ver(env)"*) return 1 ;; esac
-		ensure_env "$ver" || return 1
-		[ "$MODE" = env ] && return 0
-		printf '\n=== [%s] %s (ubuntu %s) ===\n' "$(date +%H:%M:%S)" "$what" "$(ubuntu_dotted "$ver")"
-		if $func "$ver"; then
-			BUILD_OK="$BUILD_OK $what/$ver"
-		else
-			BUILD_FAILED="$BUILD_FAILED $what/$ver"
-		fi
-	}
-
-	case $TARGET in
-		all|wheel|deb)
+	if [ "$TARGET" = wheel-env ]; then
+		record_build wheel-env build_wheel_image
+	fi
+	if [ "$TARGET" = pyinstaller-binary-env ]; then
+		record_build pyinstaller-binary-env build_env_image "$BINARY_UBUNTU" "${BUILD_OPTS[@]}"
+	fi
+	if [ "$TARGET" = deb-env ]; then
 		for ver in $UBUNTU_LIST; do
-			if [ "$TARGET" = all ] || [ "$TARGET" = wheel ]; then run_step wheel "$ver" build_wheel; fi
-			if [ "$TARGET" = all ] || [ "$TARGET" = deb ]; then run_step deb "$ver" build_deb; fi
+			record_build "deb-env/$ver" build_env_image "$ver" "${BUILD_OPTS[@]}"
 		done
-		;;
-	esac
-	if [ "$TARGET" = all ] || [ "$TARGET" = binary ]; then
-		run_step binary "$BINARY_UBUNTU" build_binary
+	fi
+
+	if [ "$TARGET" = wheel ]; then
+		record_build wheel build_with_image aotuai/brainframe-cli-wheel-env wheel-env build_stable_wheels
+	fi
+	if [ "$TARGET" = pyinstaller-binary ]; then
+		record_build pyinstaller-binary build_with_image "$(env_image "$BINARY_UBUNTU")" pyinstaller-binary-env build_binary "$BINARY_UBUNTU"
+	fi
+	if [ "$TARGET" = deb ]; then
+		for ver in $UBUNTU_LIST; do
+			record_build "deb/$ver" build_with_image "$(env_image "$ver")" deb-env build_deb "$ver"
+		done
 	fi
 
 	printf '\n=== build summary ===\n'
 	printf 'ok:     %s\n' "${BUILD_OK:- none}"
 	printf 'failed: %s\n' "${BUILD_FAILED:- none}"
-	if [ "$MODE" != env ]; then
+	if [[ "$TARGET" != *-env ]]; then
 		printf 'new packages:\n'
-		find . -maxdepth 2 -path ./.git -prune -o \( -name '*.whl' -o -name '*.deb' -o -path ./dist/brainframe \) \
+		find . -maxdepth 3 -path ./.git -prune -o \( -name '*.whl' -o -name '*.deb' -o -path ./dist/brainframe \) \
 			-type f -newer "$BUILD_MARKER" -print 2> /dev/null | sort | sed 's/^/  /'
 	fi
 	rm -f "$BUILD_MARKER"
@@ -328,47 +397,116 @@ case $CMD in
 	;;
 
 	push)
-	STAGE_NAME=dev
 	ASSUME_YES=""
-	for opt in "$TARGET" "${TARGET_ARGS[@]}"; do
-		case $opt in
-			all) ;;
-			--prod) STAGE_NAME=prod ;;
-			--yes) ASSUME_YES=1 ;;
-			*) fail "unknown push option '$opt' (use --prod, --yes)" ;;
-		esac
-	done
-	if [ ! -f dist/brainframe ]; then fail "missing dist/brainframe (run: deployment/ide_cli build binary)"; fi
-	if [ "$(stat -c %Y dist/brainframe)" -lt "$(git log -1 --format=%ct)" ]; then
-		fail "dist/brainframe is older than the last commit, rebuild it (deployment/ide_cli build binary)"
+	if [ "$TARGET" = pyinstaller-to-aws ]; then
+		for opt in "${TARGET_ARGS[@]}"; do
+			case $opt in -h|--help) push_aws_help; exit 0 ;; esac
+		done
+	elif [ "$TARGET" = all ]; then
+		for opt in "${TARGET_ARGS[@]}"; do
+			case $opt in -h|--help) usage; exit 0 ;; esac
+		done
 	fi
+	confirm_push() {
+		[ -n "$ASSUME_YES" ] && return 0
+		[ -t 0 ] || fail "not a terminal, pass --yes to confirm the upload"
+		read -r -p "Continue? [y/N] " answer
+		case $answer in y|Y|yes) return 0 ;; *) printf 'cancelled\n'; exit 2 ;; esac
+	}
 	if ! print_versions > /dev/null; then
 		print_versions
 		fail "the version numbers do not agree (see above), fix them before pushing"
 	fi
-	printf 'Uploading dist/brainframe, version %s, to the %s releases bucket (stage: %s)\n' \
-		"$(source_version)" "$STAGE_NAME" "$STAGE_NAME"
-	if [ "$STAGE_NAME" = prod ]; then printf '*** PRODUCTION ***\n'; fi
-	if [ -z "$ASSUME_YES" ]; then
-		if [ ! -t 0 ]; then fail "not a terminal, pass --yes to confirm the upload"; fi
-		read -r -p "Continue? [y/N] " answer
-		case $answer in y|Y|yes) ;; *) printf 'cancelled\n'; exit 2 ;; esac
-	fi
-	# AWS credentials come from the environment or ~/.aws (read-only)
-	AWS_OPTS=(-e STAGE="$STAGE_NAME")
-	for name in AWS_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
-		if [ -n "${!name}" ]; then AWS_OPTS+=(-e "$name"); fi
-	done
-	if [ -d "$HOME/.aws" ]; then AWS_OPTS+=(-v "$HOME/.aws":/root/.aws:ro); fi
-	run_in_env "$BINARY_UBUNTU" "
-		cd /deployment &&
-		poetry config virtualenvs.in-project true &&
-		poetry install --no-root &&
-		VENV_PATH=\$(poetry env info --path) &&
-		cd /brainframe-cli &&
-		PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python package/upload_binary.py
-		" "${AWS_OPTS[@]}"
-	if [ $? -ne 0 ]; then BUILD_ALL_RC=1; printf 'push failed\n'; else printf 'push done (%s)\n' "$STAGE_NAME"; fi
+	case $TARGET in
+		wheel)
+			REPOSITORY=testpypi
+			DRY_RUN=""
+			for opt in "${TARGET_ARGS[@]}"; do
+				case $opt in
+					--pypi) REPOSITORY=pypi ;;
+					--yes) ASSUME_YES=1 ;;
+					--dry-run) DRY_RUN=1 ;;
+					*) fail "unknown wheel push option '$opt' (use --pypi, --yes, --dry-run)" ;;
+				esac
+			done
+			WHEEL="dist/brainframe_cli-$(source_version)-py3-none-any.whl"
+			[ -f "$WHEEL" ] || fail "missing $WHEEL (run: deployment/ide_cli build wheel)"
+			[ "$(stat -c %Y "$WHEEL")" -ge "$(git log -1 --format=%ct)" ] || fail "$WHEEL is older than the last commit; rebuild it"
+			docker image inspect aotuai/brainframe-cli-wheel-env > /dev/null 2>&1 || fail "missing wheel environment (run: deployment/ide_cli build wheel-env)"
+			docker run $DOCKER_TTY --rm -v "$REPO_DIR":/brainframe-cli:ro -w /brainframe-cli \
+				aotuai/brainframe-cli-wheel-env python -m twine check --strict "$WHEEL" || fail "wheel metadata check failed"
+			printf 'Uploading %s to %s\n' "$WHEEL" "$REPOSITORY"
+			if [ -n "$DRY_RUN" ]; then
+				printf 'dry run: upload skipped\n'
+			else
+				confirm_push
+				TWINE_OPTS=()
+				for name in TWINE_USERNAME TWINE_PASSWORD TWINE_NON_INTERACTIVE; do
+					if [ -n "${!name}" ]; then TWINE_OPTS+=(-e "$name"); fi
+				done
+				if [ -f "$HOME/.pypirc" ]; then TWINE_OPTS+=(-v "$HOME/.pypirc":/root/.pypirc:ro); fi
+				docker run $DOCKER_TTY --rm "${TWINE_OPTS[@]}" \
+					-v "$REPO_DIR":/brainframe-cli:ro -w /brainframe-cli \
+					aotuai/brainframe-cli-wheel-env python -m twine upload --repository "$REPOSITORY" "$WHEEL"
+				if [ $? -ne 0 ]; then BUILD_ALL_RC=1; printf 'wheel push failed\n'; else printf 'wheel push done (%s)\n' "$REPOSITORY"; fi
+			fi
+			;;
+		pyinstaller-to-aws)
+			STAGE_NAME=dev
+			set -- "${TARGET_ARGS[@]}"
+			while [ $# -gt 0 ]; do
+				case $1 in
+					--prod) STAGE_NAME=prod; shift ;;
+					--yes) ASSUME_YES=1; shift ;;
+					--profile|--region)
+						option=$1
+						[ $# -ge 2 ] && [ -n "$2" ] && [[ $2 != --* ]] || fail "$option needs a value (run: deployment/ide_cli push pyinstaller-to-aws --help)"
+						if [ "$option" = --profile ]; then export AWS_PROFILE=$2; else export AWS_DEFAULT_REGION=$2; fi
+						shift 2 ;;
+					--profile=*) AWS_PROFILE=${1#*=}; [ -n "$AWS_PROFILE" ] || fail "--profile needs a value"; export AWS_PROFILE; shift ;;
+					--region=*) AWS_DEFAULT_REGION=${1#*=}; [ -n "$AWS_DEFAULT_REGION" ] || fail "--region needs a value"; export AWS_DEFAULT_REGION; shift ;;
+					*) fail "unknown AWS push option '$1' (run: deployment/ide_cli push pyinstaller-to-aws --help)" ;;
+				esac
+			done
+			if [ ! -f dist/brainframe ]; then fail "missing dist/brainframe (run: deployment/ide_cli build pyinstaller-binary-env, then deployment/ide_cli build pyinstaller-binary)"; fi
+			env_flavour "$BINARY_UBUNTU"
+			BINARY_SOURCE_TIME=$(git log -1 --format=%ct -- brainframe package/main.spec \
+				"deployment/$ENV_DOCKERFILE" "deployment/pyproject.toml.$PY_TAG" "deployment/poetry.lock.$PY_TAG")
+			if [ "$(stat -c %Y dist/brainframe)" -lt "$BINARY_SOURCE_TIME" ]; then
+				fail "dist/brainframe is older than its build sources; rebuild it (deployment/ide_cli build pyinstaller-binary)"
+			fi
+			if [ -z "${AWS_REGION:-}" ] && [ -z "${AWS_DEFAULT_REGION:-}" ] && command -v aws > /dev/null 2>&1; then
+				PROFILE_REGION=$(aws configure get region --profile "${AWS_PROFILE:-default}" 2> /dev/null || true)
+				if [ -z "$PROFILE_REGION" ]; then
+					if [ -z "${AWS_PROFILE:-}" ]; then
+						fail "AWS region is not configured. Try: deployment/ide_cli push pyinstaller-to-aws --profile <name>"
+					fi
+					fail "AWS profile '$AWS_PROFILE' has no region. Add --region <region>."
+				fi
+			fi
+			printf 'Uploading dist/brainframe, version %s, to the %s releases bucket\n' "$(source_version)" "$STAGE_NAME"
+			if [ "$STAGE_NAME" = prod ]; then printf '*** PRODUCTION ***\n'; fi
+			confirm_push
+			AWS_OPTS=(-e STAGE="$STAGE_NAME")
+			for name in AWS_PROFILE AWS_REGION AWS_DEFAULT_REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
+				if [ -n "${!name}" ]; then AWS_OPTS+=(-e "$name"); fi
+			done
+			if [ -n "${AWS_REGION:-}" ] && [ -z "${AWS_DEFAULT_REGION:-}" ]; then
+				AWS_OPTS+=(-e AWS_DEFAULT_REGION="$AWS_REGION")
+			fi
+			if [ -d "$HOME/.aws" ]; then AWS_OPTS+=(-v "$HOME/.aws":/root/.aws:ro); fi
+			run_in_env "$BINARY_UBUNTU" "
+				cd /deployment &&
+				poetry config virtualenvs.in-project true &&
+				poetry install --no-root &&
+				VENV_PATH=\$(poetry env info --path) &&
+				cd /brainframe-cli &&
+				PYTHONPATH=\$PYTHONPATH:. \$VENV_PATH/bin/python package/upload_binary.py
+				" "${AWS_OPTS[@]}"
+			if [ $? -ne 0 ]; then BUILD_ALL_RC=1; printf 'AWS push failed\n'; else printf 'AWS push done (%s)\n' "$STAGE_NAME"; fi
+			;;
+		*) fail "push needs wheel or pyinstaller-to-aws" ;;
+	esac
 	;;
 
 	exec)
@@ -424,15 +562,5 @@ case $CMD in
 	;;
 
 esac
-
-nice_day_var=$((1 + RANDOM % 10))
-
-if [ $((nice_day_var % 2)) -eq 0 ]; then
-	echo
-	echo Have a nice day!
-else
-	echo
-	echo You are the best!
-fi
 
 exit $BUILD_ALL_RC

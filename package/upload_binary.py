@@ -9,15 +9,21 @@ from io import BytesIO
 from pathlib import Path
 
 import boto3
+from botocore.exceptions import NoRegionError
 from brainframe.cli import __version__
 from brainframe.cli.print_utils import fail
 
-ssm = boto3.client("ssm")
-s3 = boto3.client("s3")
-cloudfront = boto3.client("cloudfront")
+try:
+    ssm = boto3.client("ssm")
+    s3 = boto3.client("s3")
+    cloudfront = boto3.client("cloudfront")
+except NoRegionError:
+    fail("AWS region is not configured. Use ide_cli push pyinstaller-to-aws --profile <name> or add --region <region>.")
 
 
 _COMPANY_NAMES = ["aotu", "dilililabs"]
+_BINARY_KEY = "releases/brainframe-cli/brainframe"
+_LATEST_KEY = "releases/brainframe-cli/latest"
 
 
 def main():
@@ -31,12 +37,18 @@ def main():
     bucket_name = _get_parameter(
         f"/content-delivery/bucket/releases/{stage}/bucket-name"
     )
+    distribution_ids = {
+        company_name: _get_parameter(
+            f"/content-delivery/cdn/{company_name}/{stage}/distribution-id"
+        )
+        for company_name in _COMPANY_NAMES
+    }
 
     # Upload the binary
     s3.upload_file(
         Filename=str(args.binary_path),
         Bucket=bucket_name,
-        Key="releases/brainframe-cli/brainframe",
+        Key=_BINARY_KEY,
     )
 
     # Upload a latest tag, containing the latest version number
@@ -44,13 +56,10 @@ def main():
     s3.upload_fileobj(
         Fileobj=version_tag_file,
         Bucket=bucket_name,
-        Key="releases/brainframe-cli/latest",
+        Key=_LATEST_KEY,
     )
 
-    for company_name in _COMPANY_NAMES:
-        distribution_id = _get_parameter(
-            f"/content-delivery/cdn/{company_name}/{stage}/distribution-id"
-        )
+    for distribution_id in distribution_ids.values():
         cloudfront.create_invalidation(
             DistributionId=distribution_id,
             InvalidationBatch={
@@ -61,6 +70,12 @@ def main():
                 "CallerReference": str(uuid.uuid4()),
             },
         )
+
+    print(f"Binary:      s3://{bucket_name}/{_BINARY_KEY}")
+    print(f"Version tag: s3://{bucket_name}/{_LATEST_KEY}")
+    if stage in ("dev", "prod"):
+        host = "staging.aotu.ai" if stage == "dev" else "aotu.ai"
+        print(f"Download:    https://{host}/{_BINARY_KEY}")
 
 
 def _parse_args() -> argparse.Namespace:
@@ -79,7 +94,16 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _get_parameter(name: str) -> str:
-    response = ssm.get_parameter(Name=name)
+    try:
+        response = ssm.get_parameter(Name=name)
+    except ssm.exceptions.ParameterNotFound:
+        stage = os.environ.get("STAGE", "dev")
+        profile = os.environ.get("AWS_PROFILE", "default")
+        hint = " Add --prod to select the production bucket." if stage == "dev" else ""
+        fail(
+            f"AWS SSM parameter not found: {name} "
+            f"(profile: {profile}, region: {ssm.meta.region_name}).{hint}"
+        )
     return response["Parameter"]["Value"]
 
 

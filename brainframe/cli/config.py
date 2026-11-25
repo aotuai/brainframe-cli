@@ -1,5 +1,4 @@
 import os
-from distutils.util import strtobool
 from pathlib import Path
 from typing import Callable
 from typing import Dict
@@ -92,4 +91,9 @@ def _bool_converter(value: Union[str, bool]) -> bool:
     if isinstance(value, bool):
         return value
 
-    return bool(strtobool(value))
+    normalized = value.lower()
+    if normalized in ("y", "yes", "t", "true", "on", "1"):
+        return True
+    if normalized in ("n", "no", "f", "false", "off", "0"):
+        return False
+    raise ValueError("invalid truth value {!r}".format(value))

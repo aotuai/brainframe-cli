@@ -16,7 +16,7 @@ packages = [
 include = ["brainframe/cli/translations/*", "brainframe/cli/defaults.yaml"]
 
 [tool.poetry.dependencies]
-python = "^3.6.9"
+python = ">=3.6.9,<3.8"
 python-i18n = "^0.3"
 pyyaml = ">=3.10,<6"
 distro = "^1.5"

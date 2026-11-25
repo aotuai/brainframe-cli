@@ -75,34 +75,54 @@ your code to fit our guidelines:
     poetry run isort .
     poetry run black .
 
-Build & install local build for test:
+Build one PyPI wheel for Python 3.6–3.12. The wheel records different
+dependencies for older and newer Python versions:
 
 .. code-block:: bash
 
-    python3 deployment/build.py --version 3.8
-    python3 deployment/build.py --version 3.10 3.12
-    pip install dist/brainframe_cli-0.3.0-py3-none-any.whl
+    deployment/ide_cli build wheel-env
+    deployment/ide_cli build wheel
 
-The above build.py will copy pyproject.toml & poetry.lock in deployment folder
-to the project root, and automatically run poetry build. Similar to below,
+To validate the wheel and intended destination without uploading, run
+``deployment/ide_cli push wheel --dry-run``. After configuring a TestPyPI token
+with ``TWINE_USERNAME`` and ``TWINE_PASSWORD`` or ``~/.pypirc``, run
+``deployment/ide_cli push wheel``. Add ``--pypi`` to publish to production PyPI.
 
-.. code-block:: bash
-
-    poetry build
-    pip install dist/brainframe_cli-0.3.0-py3-none-any.whl
-
-The wheel build & test commands have been integrated in deployment/do script,
-which support build & test on Ubuntu 18.04/20.04/22.04/24.04
+Build the PyInstaller standalone Linux executable separately:
 
 .. code-block:: bash
 
-    deployment/do
+    deployment/ide_cli build pyinstaller-binary-env
+    deployment/ide_cli build pyinstaller-binary
 
-Pyinstaller build:
+This creates ``dist/brainframe``. To publish it to the dev releases bucket,
+run ``deployment/ide_cli push pyinstaller-to-aws`` with an AWS profile and
+region (pass ``--profile`` and, if needed, ``--region``). ``--profile`` selects
+credentials; add ``--prod`` to select the production releases bucket. Run
+``deployment/ide_cli push pyinstaller-to-aws --help`` for setup details.
 
-The result will be in the dist/ directory
+Debian packages use ``build deb-env`` and ``build deb``. That build path is
+currently not release-ready.
+
+To remove generated wheels, the standalone executable, Debian packages, and
+Debian staging files before a fresh build:
 
 .. code-block:: bash
 
-    pyinstaller package/main.spec
+    deployment/ide_cli clean
+
+``clean`` restores ``brainframe/cli/defaults.yaml`` if it still matches the
+system-package copy left by a Debian build. It stops if that file has other
+edits. Docker images remain cached; pass ``--no-cache`` to a ``*-env`` build when
+testing the image build from scratch.
+
+The wheel build uses one Python 3.12 Docker image and writes one wheel to
+``dist/``. Install it for local testing with:
+
+.. code-block:: bash
+
+    pip install dist/brainframe_cli-0.3.3-py3-none-any.whl
+
+Once the Docker environments exist, rerun ``build wheel`` or
+``build pyinstaller-binary`` without rebuilding them.
 
