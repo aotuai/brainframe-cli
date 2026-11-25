@@ -64,7 +64,7 @@ def _parse_args():
     parser.add_argument(
         "--noninteractive",
         action="store_true",
-        help=i18n.t("general.noninteractive-help"),
+        help=i18n.t("uninstall.noninteractive-help"),
     )
 
     parser.add_argument(

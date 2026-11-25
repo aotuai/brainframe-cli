@@ -1,6 +1,7 @@
 en:
   description: "Provides a shell to run various pre-installed cli commands to control,
-  monitor brainframe server, and download VisionCapsules"
+  monitor brainframe server, and download VisionCapsules. Set
+  BRAINFRAME_SHELL_IMAGE to use a different published shell image."
   usage: >-
     brainframe shell
 

@@ -1,9 +1,11 @@
 en:
-  description: "Uninstalls the BrainFrame server. This command does not
-  uninstall the BrainFrame CLI itself."
+  description: "Uninstalls the BrainFrame server and deletes its install directory.
+  This command does not uninstall the BrainFrame CLI itself."
   usage: "brainframe uninstall [<args>]"
   delete-data-help: "If provided, data created by the BrainFrame server will be
   deleted as well"
+  noninteractive-help: "Skip confirmation and delete the server install directory.
+  Add --delete-data to also delete the data directory."
 
   ask-delete-data: "Would you like to delete all data created by the BrainFrame
   server as well?"
