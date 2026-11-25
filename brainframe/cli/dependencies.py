@@ -27,15 +27,15 @@ class Dependency:
         :param install_requested: If true, the user opted in to automatic
             noninteractive installation
         """
-        # Only supported operating systems can request automatic installs
+        if shutil.which(self.command_name) is not None:
+            # The command is already installed
+            return
+
+        # Only supported operating systems can request automatic installs.
         if install_requested and not os_utils.is_supported():
             print_utils.fail_translate(
                 "install.install-dependency-unsupported-os"
             )
-
-        if shutil.which(self.command_name) is not None:
-            # The command is already installed
-            return
 
         print_utils.translate(
             "install.missing-dependency", dependency=self.command_name

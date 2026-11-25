@@ -1,3 +1,4 @@
+import getpass
 import os
 import subprocess
 import sys
@@ -135,7 +136,7 @@ def _current_user():
     # "Why not use $USER here?" you might ask. Apparently $LOGNAME is a
     # POSIX standard and $USER is not.
     #  https://unix.stackexchange.com/a/76369/117461
-    return os.environ.get("SUDO_USER", os.environ["LOGNAME"])
+    return os.environ.get("SUDO_USER") or getpass.getuser()
 
 
 def run(
@@ -168,18 +169,10 @@ def run(
     return current_command.process
 
 
-_SUPPORTED_DISTROS = {
-    "Ubuntu": ["18.04", "20.04"],
-}
-"""A dict whose keys are supported Linux distribution names and whose values
-are all supported versions for that distribution.
-"""
-
-
 def is_supported() -> bool:
     """
     :return: True if the user is on an officially supported Linux distribution
+        (Ubuntu). Releases are deliberately not enumerated, so a new Ubuntu
+        release does not require a code change.
     """
-    name, version, _ = distro.linux_distribution()
-
-    return name in _SUPPORTED_DISTROS and version in _SUPPORTED_DISTROS[name]
+    return distro.id() == "ubuntu"
