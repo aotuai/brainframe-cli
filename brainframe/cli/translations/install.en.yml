@@ -33,6 +33,7 @@ en:
   supported for this operating system."
   missing-dependency: "Dependency %{dependency} appears to be missing"
   install-dependency-manually: "Please install %{dependency} and try again"
+  compose-command-failed: "Docker Compose is present but could not run: %{error}"
   docker-compose-download-error: "Error while downloading the
   docker-compose.yml file: {error}"
   default-paths: "By default, the BrainFrame docker-compose.yml will be

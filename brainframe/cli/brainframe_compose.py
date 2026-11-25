@@ -35,23 +35,25 @@ def assert_installed(install_path: Path) -> None:
 
 
 def get_docker_compose_command():
-    try:
-        # First, try to use 'docker compose'
-        compose_version = subprocess.check_output(
-            ["docker", "compose", "version", "--short"],
-            stderr=subprocess.DEVNULL,
-        )
-        return ["docker", "compose"], compose_version
-    except subprocess.CalledProcessError as e2:
+    failure = None
+    for command in (["docker", "compose"], ["docker-compose"]):
         try:
             compose_version = subprocess.check_output(
-                ["docker-compose", "version", "--short"],
+                command + ["version", "--short"],
                 stderr=subprocess.DEVNULL,
             )
-            return ["docker-compose"], compose_version
-        except subprocess.CalledProcessError as e1:
-            message = f"Docker Compose V1: {e}; V2: {e}"
-            raise DockerComposeNotFoundError(message)
+            return command, compose_version
+        except FileNotFoundError:
+            continue
+        except (OSError, subprocess.CalledProcessError) as error:
+            failure = "{}: {}".format(" ".join(command), error)
+    if failure is not None:
+        print_utils.fail_translate(
+            "install.compose-command-failed", error=failure
+        )
+    print_utils.fail_translate(
+        "install.install-dependency-manually", dependency="Docker Compose"
+    )
 
 
 def run(install_path: Path, commands: List[str]) -> None:
