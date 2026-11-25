@@ -30,6 +30,7 @@ black = "*"
 mypy = "*"
 pyinstaller = "^4.0"
 isort = "*"
+pytest = "*"
 boto3 = "^1.17.83"
 
 [tool.poetry.scripts]
